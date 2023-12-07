@@ -29,13 +29,11 @@ const CommandDialog = ({
     onOpenChange,
 }) => {
     return (
-        <Modal
-            backdrop='opaque'
-            size='3xl'
-            hideCloseButton
-            isOpen={isOpen}
-            className={clsx(className)}
+        <CommandPrimitive.Dialog
+            open={isOpen}
             onOpenChange={onOpenChange}
+            className={clsx(className)}
+            label='Global Command Menu'
         >
             <ModalContent className=''>
                 <Command
@@ -49,7 +47,7 @@ const CommandDialog = ({
                     {children}
                 </Command>
             </ModalContent>
-        </Modal>
+        </CommandPrimitive.Dialog>
     )
 }
 
