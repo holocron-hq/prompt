@@ -1,0 +1,48 @@
+{
+    "name": "@holocron.so/prompt",
+    "version": "0.0.0",
+    "private": true,
+    "description": "",
+    "main": "dist/index.js",
+    "module": "esm/index.js",
+    "types": "dist/index.d.ts",
+    "repository": "https://github.com/holocron-hq/prompt",
+    "scripts": {
+        "build": "tsc && tsc -m es6 --outDir esm",
+        "watch": "tsc -w"
+    },
+    "files": [
+        "dist",
+        "src",
+        "esm"
+    ],
+    "keywords": [],
+    "author": "Tommaso De Rossi, morse <beats.by.morse@gmail.com>",
+    "license": "",
+    "dependencies": {
+        "@nextui-org/react": "^2.2.9",
+        "ai": "^2.2.27",
+        "clsx": "^2.0.0",
+        "cmdk": "^0.2.0",
+        "highlight-words-core": "^1.2.2",
+        "lucide-react": "^0.292.0",
+        "minisearch": "^6.1.0",
+        "next-themes": "^0.2.1",
+        "react-hot-toast": "^2.4.1",
+        "safe-mdx": "*",
+        "swr": "^2.2.4",
+        "uuid": "^8.3.2"
+    },
+    "peerDependencies": {
+        "react": "*",
+        "next": "*",
+        "react-dom": "*"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.4",
+        "@types/react": "18.2.15",
+        "next": "^14.0.3",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    }
+}
