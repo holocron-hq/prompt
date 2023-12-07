@@ -59,3 +59,14 @@ export function debounce<T extends Function>(fn: T, delay: number) {
         return lastResult
     }
 }
+
+export function groupBy<T>(arr: T[], key: (x: T) => string) {
+    return arr.reduce((acc, x) => {
+        const k = key(x)
+        if (!acc[k]) {
+            acc[k] = []
+        }
+        acc[k].push(x)
+        return acc
+    }, {} as Record<string, T[]>)
+}

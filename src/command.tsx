@@ -1,5 +1,6 @@
 'use client'
 import clsx from 'clsx'
+import colors from 'tailwindcss/colors'
 
 import { Command as CommandPrimitive } from 'cmdk'
 import { CornerDownLeft, PauseIcon, StopCircleIcon } from 'lucide-react'
@@ -12,7 +13,7 @@ const Command = React.forwardRef<
     <CommandPrimitive
         ref={ref}
         className={clsx(
-            'flex z-10 h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground',
+            'flex z-10 bg-[--background] h-full w-full flex-col overflow-hidden rounded-md  ',
             className,
         )}
         {...props}
@@ -27,17 +28,20 @@ const CommandDialog = ({
     isOpen,
     onOpenChange,
 }) => {
+    const divRef = React.useRef<any>()
     return (
         <>
             {isOpen && (
-                <div className='fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'></div>
+                <div className='fixed inset-0 bg-gray-900 opacity-60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'></div>
             )}
+            <div ref={divRef} />
             <CommandPrimitive.Dialog
                 open={isOpen}
                 onOpenChange={onOpenChange}
+                container={divRef.current}
                 className={clsx(
                     className,
-                    'fixed rounded-lg z-10 border left-[50%] top-[50%] grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-4 bg-background shadow-lg duration-200 ',
+                    'fixed rounded-lg z-10 ring-[--accent] left-[50%] top-[50%] grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-4 bg-[--background] shadow-lg duration-200 ',
                 )}
                 label='Global Command Menu'
             >
@@ -64,10 +68,12 @@ const CommandInput = React.forwardRef<
         isLoading?: boolean
     }
 >(({ className, isLoading, onEnter, showReturnButton, ...props }, ref) => {
+    const onEnterRef = React.useRef(onEnter)
+    onEnterRef.current = onEnter
     React.useEffect(() => {
         const fn = (e) => {
             if (e.key === 'Enter') {
-                onEnter?.()
+                onEnterRef.current?.()
             }
         }
         window.addEventListener('keydown', fn)
@@ -82,7 +88,7 @@ const CommandInput = React.forwardRef<
             <CommandPrimitive.Input
                 ref={ref}
                 className={clsx(
-                    'placeholder:text-foreground-muted pr-3 grow flex h-16 rounded-md bg-transparent py-3 outline-none disabled:cursor-not-allowed disabled:opacity-50',
+                    'placeholder:text-[--foreground]/80 !ring-0 pr-3 grow flex h-16 rounded-md bg-transparent py-3 outline-none disabled:cursor-not-allowed disabled:opacity-50',
                     className,
                 )}
                 {...props}
@@ -139,7 +145,7 @@ const CommandGroup = React.forwardRef<
     <CommandPrimitive.Group
         ref={ref}
         className={clsx(
-            'overflow-hidden  text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground',
+            'overflow-hidden [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:opacity-70',
             className,
         )}
         {...props}
@@ -154,7 +160,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <CommandPrimitive.Separator
         ref={ref}
-        className={clsx('-mx-1 h-px bg-border', className)}
+        className={clsx('-mx-1 h-px bg-[--accent]', className)}
         {...props}
     />
 ))
@@ -167,7 +173,7 @@ const CommandItem = React.forwardRef<
     <CommandPrimitive.Item
         ref={ref}
         className={clsx(
-            'relative flex cursor-default select-none items-center data-[selected=true]:border-primary border-l-4 border-transparent px-4 pl-3 py-3 outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+            'relative flex cursor-default select-none items-center data-[selected=true]:!border-[--primary] border-l-4  !border-transparent px-4 pl-3 py-3 outline-none aria-selected:bg-[--accent] aria-selected:text-[--accent-foreground] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
             className,
         )}
         {...props}
@@ -183,7 +189,7 @@ const CommandShortcut = ({
     return (
         <span
             className={clsx(
-                'ml-auto text-xs tracking-widest text-muted-foreground',
+                'ml-auto text-xs tracking-widest opacity-80',
                 className,
             )}
             {...props}

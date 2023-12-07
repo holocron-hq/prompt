@@ -4,7 +4,7 @@ import useSwr from 'swr'
 import MiniSearch from 'minisearch'
 
 import { PagesTree, SearchDataEntry } from './types'
-import { debounce, pagesTreeBfs } from './utils'
+import { debounce, groupBy, pagesTreeBfs } from './utils'
 
 export function useMiniSearch({
     pagesTree,
@@ -45,23 +45,19 @@ export function useMiniSearch({
     )
 
     const [query, setQuery] = React.useState('')
-    const initialResults: { hit: SearchDataEntry; terms?: string[] }[] =
-        React.useMemo(() => {
-            return pagesTreeBfs(pagesTree)
-                .filter((x) => x.pageId)
-                .slice(0, 10)
-                .map((x) => {
-                    return {
-                        hit: {
-                            ...x,
-                            name: x.title || x.slug,
-                            type: 'page',
-                            text: '',
-                        },
-                        terms: [],
-                    }
-                })
-        }, [pagesTree])
+    const initialResults: SearchDataEntry[] = React.useMemo(() => {
+        return pagesTreeBfs(pagesTree)
+            .filter((x) => x.pageId)
+            .slice(0, 10)
+            .map((x) => {
+                return {
+                    ...x,
+                    name: x.title || x.slug,
+                    type: 'page',
+                    text: '',
+                }
+            })
+    }, [pagesTree])
     const [results, setResults] = React.useState(initialResults)
     React.useEffect(() => {
         if (!isOpen) {
@@ -123,8 +119,10 @@ export function useMiniSearch({
 
         const data = results.map((x) => {
             const hit = searchableItems[x.index]
-            return { ...x, terms: [query], hit }
+            
+            return hit
         })
+        // const grouped = groupBy(data, (x) => x.slug.split('/')[0])
         setResults(data || [])
         return
     }, [query, isLoading, miniSearch, initialResults])

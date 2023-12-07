@@ -30,11 +30,12 @@
         "react-hot-toast": "^2.4.1",
         "safe-mdx": "*",
         "swr": "^2.2.4",
+        "tailwindcss": "^3.3.3",
         "uuid": "^8.3.2"
     },
     "peerDependencies": {
-        "react": "*",
         "next": "*",
+        "react": "*",
         "react-dom": "*"
     },
     "devDependencies": {

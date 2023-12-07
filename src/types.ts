@@ -17,6 +17,7 @@ export interface SearchDataEntry {
     type: 'page' | 'h1' | 'h2' | 'h3'
     // parent: number
 }
+
 export type VectorAttributes = {
     text: string
     slug: string

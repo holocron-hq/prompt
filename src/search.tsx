@@ -1,14 +1,13 @@
 'use client'
+import colors from 'tailwindcss/colors'
 
 import { findAll } from 'highlight-words-core'
 import Link from 'next/link'
 
-import path from 'path'
-
+import { Laptop, Moon, SunMedium } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { memo, useCallback } from 'react'
 import { CommandGroup } from './command'
-import { SunMedium, Moon, Laptop } from 'lucide-react'
-import { useTheme } from 'next-themes'
 
 import { toast } from 'react-hot-toast'
 
@@ -27,6 +26,7 @@ import { CreateMessage, useChat } from 'ai/react'
 import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { v4 } from 'uuid'
+import { ChatList } from './chat-list'
 import {
     CommandDialog,
     CommandEmpty,
@@ -35,9 +35,32 @@ import {
     CommandList,
     CommandSeparator,
 } from './command'
-import { ChatList } from './chat-list'
 import { useMiniSearch, useRouteChanged } from './hooks'
 import { PagesTree, SearchDataEntry } from './types'
+
+function Variables({ children }) {
+    return (
+        <div className='holocron-prompt'>
+            {children}
+            <style>
+                {`
+                .holocron-prompt {
+                    --accent: ${colors.neutral[100]};
+                    --background: ${colors.neutral[50]};
+                    --accent-foreground: ${colors.neutral[800]};
+                    --primary-foreground: ${colors.neutral[800]};
+                }
+                .dark .holocron-prompt {
+                    --accent: ${colors.neutral[700]};
+                    --background: ${colors.neutral[800]};
+                    --accent-foreground: ${colors.neutral[100]};
+                    --primary-foreground: ${colors.neutral[100]};
+                }
+                `}
+            </style>
+        </div>
+    )
+}
 
 export function SearchAndChat({
     pagesTree,
@@ -131,6 +154,7 @@ export function SearchAndChat({
         setValue('')
         setChatId(v4())
         additionalMessages.current = []
+        stop()
     }
 
     useEffect(() => {
@@ -143,6 +167,7 @@ export function SearchAndChat({
 
     const onEnter = async () => {
         if (isLoading) {
+            console.log('stopping generation')
             stop()
             return
         }
@@ -152,6 +177,7 @@ export function SearchAndChat({
         setValue('')
 
         const messageId = v4()
+        console.log(`sending message`, q)
         append({
             role: 'user',
             id: messageId,
@@ -161,7 +187,7 @@ export function SearchAndChat({
     const showChatIdeas = !messages.length && !value && !isLoading
 
     return (
-        <>
+        <Variables>
             <CommandDialog
                 className=''
                 onChange={(e: any) => {
@@ -176,7 +202,13 @@ export function SearchAndChat({
                     value={value}
                     showReturnButton={mode === 'chat'}
                     isLoading={isLoading}
-                    onEnter={onEnter}
+                    onEnter={() => {
+                        if (mode === 'chat') {
+                            onEnter()
+                        } else {
+                            console.log('ignoring enter in non chat mode')
+                        }
+                    }}
                     placeholder={
                         mode === 'chat'
                             ? 'Ask anything...'
@@ -230,11 +262,7 @@ export function SearchAndChat({
                         <CommandEmpty>No results found.</CommandEmpty>
                         <CommandItem
                             onSelect={() => {
-                                flushSync(() => {
-                                    setMode('chat')
-                                })
-                                input.current?.focus()
-                                onEnter()
+                                setMode('chat')
                             }}
                         >
                             <StarsIcon className='w-7 mr-2' />
@@ -248,6 +276,7 @@ export function SearchAndChat({
                             return (
                                 <SearchResultItem
                                     key={node.slug}
+                                    title={node.name || basename(node.slug)}
                                     terms={terms}
                                     href={href}
                                     node={node}
@@ -259,9 +288,11 @@ export function SearchAndChat({
                     </CommandList>
                 )}
             </CommandDialog>
-        </>
+        </Variables>
     )
 }
+
+
 
 const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
     const getBodyOptions = () => {
@@ -391,9 +422,11 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
     ]
 }
 
-export function SearchResultItem({ node, href, terms }) {
-    const name = path.basename(node?.slug!)
+function basename(path) {
+    return path.split(/[\\/]/).pop()
+}
 
+export function SearchResultItem({ node, title, href, terms }) {
     return (
         <Link href={href}>
             <CommandItem
@@ -408,13 +441,13 @@ export function SearchResultItem({ node, href, terms }) {
                             <DocIcon className='shrink-0 h-7 opacity-70' />
                         </div>
                         <div className='flex flex-col gap-px'>
-                            <div className='text-xs font-semibold opacity-70'>
+                            {/* <div className='text-xs font-semibold opacity-70'>
                                 {node.slug}
-                            </div>
+                            </div> */}
                             <div className=''>
                                 <SearchedText
                                     terms={terms}
-                                    textToHighlight={name}
+                                    textToHighlight={title}
                                 />
                             </div>
                         </div>
