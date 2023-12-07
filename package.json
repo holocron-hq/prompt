@@ -20,7 +20,6 @@
     "author": "Tommaso De Rossi, morse <beats.by.morse@gmail.com>",
     "license": "",
     "dependencies": {
-        "@nextui-org/react": "^2.2.9",
         "ai": "^2.2.27",
         "clsx": "^2.0.0",
         "cmdk": "^0.2.0",
