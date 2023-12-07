@@ -2,7 +2,6 @@ import { Message } from 'ai'
 import Link from 'next/link'
 import { clsx } from 'clsx'
 
-import { cn } from '@nextui-org/react'
 import { IconUser } from './icons'
 
 import { SafeMdxRenderer } from 'safe-mdx/src'
@@ -24,9 +23,9 @@ export function ChatMessage({
     ...props
 }: ChatMessageProps) {
     return (
-        <div className={cn('group relative flex items-start')} {...props}>
+        <div className={clsx('group relative flex items-start')} {...props}>
             <div
-                className={cn(
+                className={clsx(
                     'flex h-10 w-10 mt-1 shrink-0 select-none items-center justify-center rounded-md border shadow',
                     message.role === 'user'
                         ? 'bg-background'
@@ -34,16 +33,16 @@ export function ChatMessage({
                 )}
             >
                 {message.role === 'user' ? (
-                    <IconUser className={cn('w-6')} />
+                    <IconUser className={clsx('w-6')} />
                 ) : (
                     <img
-                        className={cn('h-6 w-6 rounded dark:invert')}
+                        className={clsx('h-6 w-6 rounded dark:invert')}
                         src='https://holocron.so/favicon.png'
                     />
                 )}
             </div>
             <div className='flex-1 ml-4 space-y-2 overflow-hidden'>
-                <Prose className={cn('', className)}>
+                <Prose className={clsx('', className)}>
                     <SafeMdxRenderer
                         code={message.content}
                         // mdast={mdast}
@@ -57,7 +56,7 @@ export function ChatMessage({
                             pre({ children, className, ...rest }) {
                                 return (
                                     <pre
-                                        className={cn('dark', className)}
+                                        className={clsx('dark', className)}
                                         {...rest}
                                     >
                                         {children}

@@ -1,5 +1,4 @@
 'use client'
-import { Button, Modal, ModalContent, Spinner, cn } from '@nextui-org/react'
 import clsx from 'clsx'
 
 import { Command as CommandPrimitive } from 'cmdk'
@@ -12,7 +11,7 @@ const Command = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <CommandPrimitive
         ref={ref}
-        className={cn(
+        className={clsx(
             'flex z-10 h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground',
             className,
         )}
@@ -29,13 +28,19 @@ const CommandDialog = ({
     onOpenChange,
 }) => {
     return (
-        <CommandPrimitive.Dialog
-            open={isOpen}
-            onOpenChange={onOpenChange}
-            className={clsx(className)}
-            label='Global Command Menu'
-        >
-            <ModalContent className=''>
+        <>
+            {isOpen && (
+                <div className='fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'></div>
+            )}
+            <CommandPrimitive.Dialog
+                open={isOpen}
+                onOpenChange={onOpenChange}
+                className={clsx(
+                    className,
+                    'fixed rounded-lg z-10 border left-[50%] top-[50%] grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-4 bg-background shadow-lg duration-200 ',
+                )}
+                label='Global Command Menu'
+            >
                 <Command
                     // value={value}
                     tabIndex={-1}
@@ -46,8 +51,8 @@ const CommandDialog = ({
                 >
                     {children}
                 </Command>
-            </ModalContent>
-        </CommandPrimitive.Dialog>
+            </CommandPrimitive.Dialog>
+        </>
     )
 }
 
@@ -76,7 +81,7 @@ const CommandInput = React.forwardRef<
         >
             <CommandPrimitive.Input
                 ref={ref}
-                className={cn(
+                className={clsx(
                     'placeholder:text-foreground-muted pr-3 grow flex h-16 rounded-md bg-transparent py-3 outline-none disabled:cursor-not-allowed disabled:opacity-50',
                     className,
                 )}
@@ -84,20 +89,13 @@ const CommandInput = React.forwardRef<
             />
 
             {showReturnButton && (
-                <Button
-                    onClick={onEnter}
-                    isIconOnly
-                    size='sm'
-                    variant='light'
-                    startContent={
-                        isLoading ? (
-                            <PauseIcon className='w-5' />
-                        ) : (
-                            <CornerDownLeft className='w-5' />
-                        )
-                    }
-                    className='shrink-0 flex'
-                ></Button>
+                <button onClick={onEnter} className='shrink-0 flex'>
+                    {isLoading ? (
+                        <PauseIcon className='w-5' />
+                    ) : (
+                        <CornerDownLeft className='w-5' />
+                    )}
+                </button>
             )}
         </div>
     )
@@ -111,7 +109,10 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <CommandPrimitive.List
         ref={ref}
-        className={cn('h-[460px] overflow-y-auto overflow-x-hidden', className)}
+        className={clsx(
+            'h-[460px] overflow-y-auto overflow-x-hidden',
+            className,
+        )}
         {...props}
     />
 ))
@@ -137,7 +138,7 @@ const CommandGroup = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <CommandPrimitive.Group
         ref={ref}
-        className={cn(
+        className={clsx(
             'overflow-hidden  text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground',
             className,
         )}
@@ -153,7 +154,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <CommandPrimitive.Separator
         ref={ref}
-        className={cn('-mx-1 h-px bg-border', className)}
+        className={clsx('-mx-1 h-px bg-border', className)}
         {...props}
     />
 ))
@@ -165,7 +166,7 @@ const CommandItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <CommandPrimitive.Item
         ref={ref}
-        className={cn(
+        className={clsx(
             'relative flex cursor-default select-none items-center data-[selected=true]:border-primary border-l-4 border-transparent px-4 pl-3 py-3 outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
             className,
         )}
@@ -181,7 +182,7 @@ const CommandShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => {
     return (
         <span
-            className={cn(
+            className={clsx(
                 'ml-auto text-xs tracking-widest text-muted-foreground',
                 className,
             )}
