@@ -2,11 +2,12 @@ import { type Message } from 'ai'
 import { v4 } from 'uuid'
 
 import { Fragment } from 'react'
-import { ChatMessage, MessageSource } from './chat-message'
+import { ChatMessage } from './chat-message'
+import { SearchDataEntry } from './types'
 
 export interface ChatList {
     messages: Message[]
-    sources: MessageSource[][]
+    sources: SearchDataEntry[][]
 }
 
 export function ChatList({ sources, messages }: ChatList) {

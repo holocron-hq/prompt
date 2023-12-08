@@ -43,8 +43,13 @@ import {
     CommandList,
     CommandSeparator,
 } from './command'
-import { useMiniSearch, useRouteChanged } from './hooks'
-import { PagesTree, SearchDataEntry } from './types'
+import {
+    promptContext,
+    useMiniSearch,
+    usePromptContext,
+    useRouteChanged,
+} from './hooks'
+import { PagesTree, SearchDataEntry, SearchEndpointBody } from './types'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 
@@ -72,17 +77,7 @@ function Variables({ children }) {
     )
 }
 
-export function SearchAndChat({
-    pagesTree,
-    className = '',
-    namespace,
-    getSearchData,
-    searchDataKey,
-    isOpen,
-    setOpen,
-    markdown,
-    slugToHref,
-}: {
+export type SearchAndChatProps = {
     className?: string
     namespace: string
     searchDataKey: string
@@ -94,7 +89,20 @@ export function SearchAndChat({
     }>
     slugToHref: (slug: string) => string
     pagesTree: PagesTree[]
-}) {
+}
+
+export function SearchAndChat(props: SearchAndChatProps) {
+    const {
+        pagesTree,
+        className = '',
+        namespace,
+        getSearchData,
+        searchDataKey,
+        isOpen,
+        setOpen,
+        markdown,
+        slugToHref,
+    } = props
     const [mode, setMode] = useState<'search' | 'chat'>('search')
     const [chatId, setChatId] = useState(() => v4())
     useRouteChanged(() => {
@@ -136,14 +144,16 @@ export function SearchAndChat({
         }
     }, [isOpen])
 
+    const body: Partial<SearchEndpointBody> = {
+        additionalMessages: additionalMessages.current,
+        namespace,
+    }
+
     const { messages, append, data, setMessages, stop, isLoading } = useChat({
         initialMessages: [],
         api: '/api/docs-chat',
         id: chatId,
-        body: {
-            additionalMessages: additionalMessages.current,
-            namespace,
-        },
+        body,
         onResponse(response) {
             if (response.status === 401) {
                 toast.error(response.statusText)
@@ -200,165 +210,183 @@ export function SearchAndChat({
         })
     }
     const showChatIdeas = !messages.length && !value && !isLoading
-    const terms = value.split(/ +/).filter((x) => x)
+    const terms = [value]
+    // console.log({ data })
     return (
-        <Variables>
-            <CommandDialog
-                className=''
-                onChange={(e: any) => {
-                    setValue(e.target.value)
-                }}
-                isOpen={isOpen}
-                onOpenChange={setOpen}
-            >
-                <CommandInput
-                    ref={input}
-                    autoFocus
-                    value={value}
-                    endContent={
-                        mode === 'chat' ? (
-                            <button onClick={onEnter} className='shrink-0 flex'>
-                                {isLoading ? (
-                                    <PauseIcon className='w-5' />
-                                ) : (
-                                    <CornerDownLeft className='w-5' />
-                                )}
-                            </button>
-                        ) : (
-                            isSearching && <Spinner />
-                        )
-                    }
-                    isLoading={isLoading}
-                    onEnter={() => {
-                        if (mode === 'chat') {
-                            onEnter()
-                        } else {
-                            console.log('ignoring enter in non chat mode')
-                        }
+        <promptContext.Provider value={props}>
+            <Variables>
+                <CommandDialog
+                    className=''
+                    onChange={(e: any) => {
+                        setValue(e.target.value)
                     }}
-                    placeholder={
-                        mode === 'chat'
-                            ? 'Ask anything...'
-                            : 'Type a command or search...'
-                    }
-                />
-                {mode === 'chat' && (
-                    <CommandList key='list'>
-                        {showChatIdeas ? (
-                            getMessageIdeas({
-                                additionalMessages,
-                                append,
-                                markdown,
-                            }).map((msg, i) => {
-                                return (
-                                    <CommandItem
-                                        key={i}
-                                        onSelect={msg.onSelect}
-                                        className='flex items-center gap-2'
-                                    >
-                                        {msg.icon}
-                                        <div className=''>{msg.content}</div>
-                                    </CommandItem>
-                                )
-                            })
-                        ) : (
-                            <ChatList
-                                sources={
-                                    data?.map((x: any) =>
-                                        x.sources?.map((source) => {
-                                            return {
-                                                href: slugToHref(source.slug),
-                                                title:
-                                                    source.title || source.slug,
-                                            }
-                                        }),
-                                    ) || []
-                                }
-                                messages={messages.filter(
-                                    (x) =>
-                                        !additionalMessages.current.some(
-                                            (add) => add.content === x.content,
-                                        ),
-                                )}
-                            />
-                        )}
-                    </CommandList>
-                )}
-                {mode === 'search' && (
-                    <CommandList key='list'>
-                        <CommandEmpty>No results found.</CommandEmpty>
-                        <CommandItem
-                            onSelect={() => {
-                                setMode('chat')
-                            }}
-                        >
-                            <StarsIcon className='w-5 mr-2' />
-                            <span className='font-bold'>Ask AI</span>
-                            {value && ': '}
-                            {value}
-                        </CommandItem>
-                        {results.map((node, i) => {
-                            const sections = node.sections
-                            const href = slugToHref(node.slug)
-
-                            const pageNode = (
-                                <SearchResultItem
-                                    key={node.slug}
-                                    title={node.name || basename(node.slug)}
-                                    type={node.type}
-                                    terms={terms}
-                                    href={href}
-                                    slug={node.slug}
-                                    setOpen={setOpen}
-                                    text=''
+                    isOpen={isOpen}
+                    onOpenChange={setOpen}
+                >
+                    <CommandInput
+                        ref={input}
+                        autoFocus
+                        value={value}
+                        endContent={
+                            mode === 'chat' ? (
+                                <button
+                                    onClick={onEnter}
+                                    className='shrink-0 flex'
+                                >
+                                    {isLoading ? (
+                                        <PauseIcon className='w-5' />
+                                    ) : (
+                                        <CornerDownLeft className='w-5' />
+                                    )}
+                                </button>
+                            ) : (
+                                isSearching && <Spinner />
+                            )
+                        }
+                        isLoading={isLoading}
+                        onEnter={() => {
+                            if (mode === 'chat') {
+                                onEnter()
+                            } else {
+                                console.log('ignoring enter in non chat mode')
+                            }
+                        }}
+                        placeholder={
+                            mode === 'chat'
+                                ? 'Ask anything...'
+                                : 'Type a command or search...'
+                        }
+                    />
+                    {mode === 'chat' && (
+                        <CommandList key='list'>
+                            {showChatIdeas ? (
+                                getMessageIdeas({
+                                    additionalMessages,
+                                    append,
+                                    markdown,
+                                }).map((msg, i) => {
+                                    return (
+                                        <CommandItem
+                                            key={i}
+                                            onSelect={msg.onSelect}
+                                            className='flex items-center gap-2'
+                                        >
+                                            {msg.icon}
+                                            <div className=''>
+                                                {msg.content}
+                                            </div>
+                                        </CommandItem>
+                                    )
+                                })
+                            ) : (
+                                <ChatList
+                                    sources={
+                                        data?.map((x: any) =>
+                                            x.sources?.map((source) => {
+                                                return {
+                                                    href: slugToHref(
+                                                        source.slug,
+                                                    ),
+                                                    title:
+                                                        source.title ||
+                                                        source.slug,
+                                                }
+                                            }),
+                                        ) || []
+                                    }
+                                    messages={messages.filter(
+                                        (x) =>
+                                            !additionalMessages.current.some(
+                                                (add) =>
+                                                    add.content === x.content,
+                                            ),
+                                    )}
                                 />
-                            )
-                            if (!sections?.length) return pageNode
+                            )}
+                        </CommandList>
+                    )}
+                    {mode === 'search' && (
+                        <CommandList key='list'>
+                            <CommandEmpty>No results found.</CommandEmpty>
+                            <CommandItem
+                                onSelect={() => {
+                                    setMode('chat')
+                                }}
+                            >
+                                <StarsIcon className='w-5 mr-2' />
+                                <span className='font-bold'>Ask AI</span>
+                                {value && ': '}
+                                {value}
+                            </CommandItem>
+                            {results.map((node, i) => {
+                                const sections = node.sections
+                                const href = slugToHref(node.slug)
 
-                            return (
-                                <div className='flex flex-col' key={node.slug}>
-                                    {pageNode}
-                                    <div className=''>
-                                        {sections.map((node) => {
-                                            const href = slugToHref(node.slug)
+                                const pageNode = (
+                                    <SearchResultItem
+                                        key={node.slug}
+                                        title={node.name || basename(node.slug)}
+                                        type={node.type}
+                                        terms={terms}
+                                        href={href}
+                                        slug={node.slug}
+                                        setOpen={setOpen}
+                                        text=''
+                                    />
+                                )
+                                if (!sections?.length) return pageNode
 
-                                            return (
-                                                <SearchResultItem
-                                                    setOpen={setOpen}
-                                                    pl
-                                                    key={node.slug}
-                                                    title={
-                                                        node.name ||
-                                                        basename(node.slug)
-                                                    }
-                                                    type={node.type}
-                                                    terms={terms}
-                                                    href={href}
-                                                    slug={node.slug}
-                                                    text={node.text}
-                                                />
-                                            )
-                                        })}
+                                return (
+                                    <div
+                                        className='flex flex-col'
+                                        key={node.slug}
+                                    >
+                                        {pageNode}
+                                        <div className=''>
+                                            {sections.map((node) => {
+                                                const href = slugToHref(
+                                                    node.slug,
+                                                )
+
+                                                return (
+                                                    <SearchResultItem
+                                                        setOpen={setOpen}
+                                                        pl
+                                                        key={node.slug}
+                                                        title={
+                                                            node.name ||
+                                                            basename(node.slug)
+                                                        }
+                                                        type={node.type}
+                                                        terms={terms}
+                                                        href={href}
+                                                        slug={node.slug}
+                                                        text={node.text}
+                                                    />
+                                                )
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            )
-                        })}
-                        <CommandSeparator />
-                        <DarkModeCommands setOpen={setOpen} />
-                    </CommandList>
-                )}
-            </CommandDialog>
-        </Variables>
+                                )
+                            })}
+                            <CommandSeparator />
+                            <DarkModeCommands />
+                        </CommandList>
+                    )}
+                </CommandDialog>
+            </Variables>
+        </promptContext.Provider>
     )
 }
 
 const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
     const getBodyOptions = () => {
+        const body: Partial<SearchEndpointBody> = {
+            additionalMessages: additionalMessages.current,
+        }
         return {
             options: {
-                body: {
-                    additionalMessages: additionalMessages.current,
-                },
+                body,
             },
         }
     }
@@ -621,7 +649,8 @@ export function DocIcon(props) {
     )
 }
 
-export function DarkModeCommands({ setOpen }) {
+export function DarkModeCommands({}) {
+    const { setOpen } = usePromptContext()
     const { setTheme } = useTheme()
 
     const runCommand = useCallback((command: () => unknown) => {

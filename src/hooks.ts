@@ -11,9 +11,22 @@ import {
     mean,
     pagesTreeBfs,
 } from './utils'
+import { SearchAndChatProps } from './search'
 
 type SearchResult = SearchDataEntry & {
     sections?: SearchDataEntry[]
+}
+
+export const promptContext = React.createContext<
+    SearchAndChatProps | undefined
+>(undefined)
+
+export function usePromptContext() {
+    const ctx = React.useContext(promptContext)
+    if (!ctx) {
+        throw new Error('usePromptContext must be used within a PromptProvider')
+    }
+    return ctx
 }
 
 export function useMiniSearch({

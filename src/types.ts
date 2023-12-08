@@ -1,3 +1,5 @@
+import { CreateMessage } from 'ai'
+
 export type PagesTree<T = {}> = {
     slug: string
     pageId?: string
@@ -19,7 +21,8 @@ export interface SearchDataEntry {
     // parent: number
 }
 
-export type VectorAttributes = {
-    text: string
-    slug: string
+export type SearchEndpointBody = {
+    messages: CreateMessage[]
+    namespace: string
+    additionalMessages?: CreateMessage[]
 }

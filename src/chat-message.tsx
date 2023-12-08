@@ -3,16 +3,12 @@ import Link from 'next/link'
 import { clsx } from 'clsx'
 
 import { SafeMdxRenderer } from 'safe-mdx'
+import { SearchDataEntry } from './types'
+import { usePromptContext } from './hooks'
 
 export interface ChatMessageProps {
     message: Message
     className?: string
-}
-
-export type MessageSource = {
-    href: string
-    title: string
-    content: string
 }
 
 export function ChatMessage({
@@ -93,7 +89,7 @@ export function Prose<T extends React.ElementType = 'div'>({
                 // lead
                 'prose-lead:text-gray-500 dark:prose-lead:text-gray-400',
                 // links
-                'prose-a:font-semibold dark:prose-a:text-[--primary]',
+                'prose-a:font-semibold dark:prose-a:text-white',
                 // link underline
                 // pre
                 'prose-pre:rounded-xl prose-pre:bg-gray-900 prose-pre:shadow-lg dark:prose-pre:bg-gray-800/60 dark:prose-pre:shadow-none dark:prose-pre:ring-1 dark:prose-pre:ring-gray-300/10',
@@ -105,15 +101,20 @@ export function Prose<T extends React.ElementType = 'div'>({
     )
 }
 
-function Sources({ sources }: { sources: MessageSource[] }) {
+function Sources({ sources }: { sources: SearchDataEntry[] }) {
+    const { slugToHref } = usePromptContext()
     return (
         <div className='flex flex-col gap-2'>
             <div className=''>Using the following sources:</div>
             <div className='flex flex-col prose gap-1'>
                 {sources?.map((x, i) => {
                     return (
-                        <Link key={i} href={x.href} className='text-sm'>
-                            {x.title}
+                        <Link
+                            key={i}
+                            href={slugToHref(x.slug)}
+                            className='text-sm'
+                        >
+                            {x.name}
                         </Link>
                     )
                 })}
