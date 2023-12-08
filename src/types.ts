@@ -13,3 +13,10 @@ export type SearchEndpointBody = {
     namespace: string
     additionalMessages?: CreateMessage[]
 }
+
+export type DialogPosition = {
+    width
+    left
+    top
+    right
+}

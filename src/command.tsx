@@ -1,10 +1,12 @@
 'use client'
 import clsx from 'clsx'
 import colors from 'tailwindcss/colors'
+import { Dialog, Transition } from '@headlessui/react'
 
 import { Command as CommandPrimitive } from 'cmdk'
 import { CornerDownLeft, PauseIcon, StopCircleIcon } from 'lucide-react'
 import * as React from 'react'
+import { DialogPosition } from './types'
 
 const Command = React.forwardRef<
     any,
@@ -26,24 +28,38 @@ const CommandDialog = ({
     className = '',
     onChange,
     isOpen,
+    position,
     onOpenChange,
+}: {
+    children: React.ReactNode
+    className?: string
+    onChange
+    isOpen: boolean
+    position?: DialogPosition
+    onOpenChange: any
 }) => {
     const divRef = React.useRef<any>()
+
     return (
         <>
             {isOpen && (
-                <div className='fixed inset-0 bg-gray-900 opacity-60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'></div>
+                <div
+                    onClick={() => onOpenChange(false)}
+                    className='fixed z-10 inset-0 bg-gray-900 opacity-60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'
+                ></div>
             )}
             <div ref={divRef} />
-            <CommandPrimitive.Dialog
+
+            <Dialog
                 open={isOpen}
-                onOpenChange={onOpenChange}
-                container={divRef.current}
+                onClose={onOpenChange}
                 className={clsx(
                     className,
-                    'fixed rounded-lg z-10 ring-[--accent] left-[50%] top-[50%] grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-4 bg-[--background] shadow-lg duration-200 ',
+                    'holocron-prompt-scope fixed rounded-lg z-20 ring-[--accent] grid w-full gap-4 bg-[--background] shadow-lg duration-200 ',
+                    !position &&
+                        'max-w-3xl left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]',
                 )}
-                label='Global Command Menu'
+                style={position}
             >
                 <Command
                     // value={value}
@@ -55,7 +71,7 @@ const CommandDialog = ({
                 >
                     {children}
                 </Command>
-            </CommandPrimitive.Dialog>
+            </Dialog>
         </>
     )
 }

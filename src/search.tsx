@@ -50,21 +50,21 @@ import {
     usePromptContext,
     useRouteChanged,
 } from './hooks'
-import { SearchDataEntry, SearchEndpointBody } from './types'
+import { DialogPosition, SearchDataEntry, SearchEndpointBody } from './types'
 
 function Variables({ children }) {
     return (
-        <div className='holocron-prompt'>
+        <div className='holocron-prompt-scope'>
             {children}
             <style>
                 {`
-                .holocron-prompt {
+                .holocron-prompt-scope {
                     --accent: ${colors.neutral[100]};
                     --background: ${colors.neutral[50]};
                     --accent-foreground: ${colors.neutral[800]};
                     --primary-foreground: ${colors.neutral[800]};
                 }
-                .dark .holocron-prompt {
+                .dark .holocron-prompt-scope {
                     --accent: ${colors.neutral[700]};
                     --background: ${colors.neutral[800]};
                     --accent-foreground: ${colors.neutral[100]};
@@ -88,6 +88,7 @@ export type SearchAndChatProps = {
     slugToHref?: (slug: string) => string
     initialResults?: SearchDataEntry[]
     api?: string
+    position?: DialogPosition
 }
 
 export function SearchAndChat({
@@ -100,6 +101,7 @@ export function SearchAndChat({
     initialResults = [],
     api = '/api/docs-chat',
     slugToHref = (x) => x,
+    position,
 }: SearchAndChatProps) {
     const [mode, setMode] = useState<'search' | 'chat'>('search')
     const [chatId, setChatId] = useState(() => v4())
@@ -234,6 +236,7 @@ export function SearchAndChat({
                     }}
                     isOpen={isOpen}
                     onOpenChange={setOpen}
+                    position={position}
                 >
                     <CommandInput
                         ref={input}
