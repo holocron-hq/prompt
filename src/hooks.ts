@@ -1,17 +1,11 @@
-import React, { useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
-import useSwr from 'swr'
 import MiniSearch from 'minisearch'
+import { usePathname } from 'next/navigation'
+import React, { useEffect, useRef } from 'react'
+import useSwr from 'swr'
 
-import { PagesTree, SearchDataEntry } from './types'
-import {
-    debounce,
-    deduplicateByKeyFn,
-    groupBy,
-    mean,
-    pagesTreeBfs,
-} from './utils'
 import { SearchAndChatProps } from './search'
+import { SearchDataEntry } from './types'
+import { debounce, deduplicateByKeyFn, groupBy, mean } from './utils'
 
 type SearchResult = SearchDataEntry & {
     sections?: SearchDataEntry[]
@@ -30,16 +24,15 @@ export function usePromptContext() {
 }
 
 export function useMiniSearch({
-    pagesTree,
     getSearchData,
     searchDataKey,
     isOpen,
+    initialResults,
 }: {
-    pagesTree: PagesTree[]
     getSearchData: () => Promise<{
         searchData: SearchDataEntry[]
     }>
-
+    initialResults: SearchResult[]
     searchDataKey: string
     isOpen: boolean
 }) {
@@ -49,6 +42,7 @@ export function useMiniSearch({
             const { searchData: searchableItems = [] } = await getSearchData()
 
             searchableItems.forEach((item, i) => {
+                // @ts-ignore
                 item.index = i
             })
             // console.log('searchableItems', searchableItems)
@@ -68,19 +62,7 @@ export function useMiniSearch({
     )
 
     const [query, setQuery] = React.useState('')
-    const initialResults: SearchDataEntry[] = React.useMemo(() => {
-        return pagesTreeBfs(pagesTree)
-            .filter((x) => x.pageId)
-            .slice(0, 10)
-            .map((x) => {
-                return {
-                    ...x,
-                    name: x.title || x.slug,
-                    type: 'page',
-                    text: '',
-                }
-            })
-    }, [pagesTree])
+
     const [results, setResults] = React.useState<SearchResult[]>(initialResults)
     React.useEffect(() => {
         if (!isOpen) {
