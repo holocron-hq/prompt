@@ -79,30 +79,31 @@ function Variables({ children }) {
 export type SearchAndChatProps = {
     className?: string
     namespace: string
-    searchDataKey: string
-    markdown: string
+    currentPageText?: string
     isOpen: boolean
     setOpen: Function
     getSearchData: () => Promise<{
         searchData: SearchDataEntry[]
     }>
-    slugToHref: (slug: string) => string
-    initialResults: SearchDataEntry[]
+    slugToHref?: (slug: string) => string
+    initialResults?: SearchDataEntry[]
     api?: string
 }
 
 export function SearchAndChat(props: SearchAndChatProps) {
+    props.slugToHref ||= (slug) => slug
+    props.api ||= '/api/docs-chat'
+
     const {
         className = '',
         namespace,
         getSearchData,
-        searchDataKey,
         isOpen,
         setOpen,
-        markdown,
+        currentPageText = '',
+        initialResults = [],
+        api,
         slugToHref,
-        initialResults,
-        api = '/api/docs-chat',
     } = props
     const [mode, setMode] = useState<'search' | 'chat'>('search')
     const [chatId, setChatId] = useState(() => v4())
@@ -116,7 +117,7 @@ export function SearchAndChat(props: SearchAndChatProps) {
         onQueryChange,
     } = useMiniSearch({
         getSearchData,
-        searchDataKey,
+        searchDataKey: namespace,
         initialResults,
         isOpen,
     })
@@ -266,7 +267,7 @@ export function SearchAndChat(props: SearchAndChatProps) {
                                 getMessageIdeas({
                                     additionalMessages,
                                     append,
-                                    markdown,
+                                    currentPageText,
                                 }).map((msg, i) => {
                                     return (
                                         <CommandItem
@@ -382,7 +383,10 @@ export function SearchAndChat(props: SearchAndChatProps) {
     )
 }
 
-const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
+const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
+    if (!currentPageText) {
+        return []
+    }
     const getBodyOptions = () => {
         const body: Partial<SearchEndpointBody> = {
             additionalMessages: additionalMessages.current,
@@ -400,7 +404,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
             onSelect() {
                 additionalMessages.current = [
                     {
-                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${markdown}\n\`\`\`\n\n`,
+                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${currentPageText}\n\`\`\`\n\n`,
                         role: 'assistant',
                     },
                 ]
@@ -419,7 +423,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
             onSelect() {
                 additionalMessages.current = [
                     {
-                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${markdown}\n\`\`\`\n\n`,
+                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${currentPageText}\n\`\`\`\n\n`,
                         role: 'assistant',
                     },
                 ]
@@ -438,7 +442,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
             onSelect() {
                 additionalMessages.current = [
                     {
-                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${markdown}\n\`\`\`\n\n`,
+                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${currentPageText}\n\`\`\`\n\n`,
                         role: 'assistant',
                     },
                 ]
@@ -457,7 +461,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
             onSelect() {
                 additionalMessages.current = [
                     {
-                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${markdown}\n\`\`\`\n\n`,
+                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${currentPageText}\n\`\`\`\n\n`,
                         role: 'assistant',
                     },
                 ]
@@ -476,7 +480,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
             onSelect() {
                 additionalMessages.current = [
                     {
-                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${markdown}\n\`\`\`\n\n`,
+                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${currentPageText}\n\`\`\`\n\n`,
                         role: 'assistant',
                     },
                 ]
@@ -495,7 +499,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
             onSelect() {
                 additionalMessages.current = [
                     {
-                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${markdown}\n\`\`\`\n\n`,
+                        content: `This is the markdown content of the current page:\n\n\`\`\`md\n${currentPageText}\n\`\`\`\n\n`,
                         role: 'assistant',
                     },
                 ]

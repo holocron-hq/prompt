@@ -111,7 +111,7 @@ function Sources({ sources }: { sources: SearchDataEntry[] }) {
                     return (
                         <Link
                             key={i}
-                            href={slugToHref(x.slug)}
+                            href={slugToHref!(x.slug)}
                             className='text-sm'
                         >
                             {x.name}
