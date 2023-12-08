@@ -51,7 +51,7 @@ const CommandDialog = ({
                     onChange={onChange}
                     shouldFilter={false}
                     loop
-                    className=''
+                    className='focus:outline-none focus:ring-0'
                 >
                     {children}
                 </Command>
