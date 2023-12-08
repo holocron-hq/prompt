@@ -90,21 +90,17 @@ export type SearchAndChatProps = {
     api?: string
 }
 
-export function SearchAndChat(props: SearchAndChatProps) {
-    props.slugToHref ||= (slug) => slug
-    props.api ||= '/api/docs-chat'
-
-    const {
-        className = '',
-        namespace,
-        getSearchData,
-        isOpen,
-        setOpen,
-        currentPageText = '',
-        initialResults = [],
-        api,
-        slugToHref,
-    } = props
+export function SearchAndChat({
+    className = '',
+    namespace,
+    getSearchData,
+    isOpen,
+    setOpen,
+    currentPageText = '',
+    initialResults = [],
+    api = '/api/docs-chat',
+    slugToHref = (x) => x,
+}: SearchAndChatProps) {
     const [mode, setMode] = useState<'search' | 'chat'>('search')
     const [chatId, setChatId] = useState(() => v4())
     useRouteChanged(() => {
@@ -217,7 +213,19 @@ export function SearchAndChat(props: SearchAndChatProps) {
     const terms = [value]
     // console.log({ data })
     return (
-        <promptContext.Provider value={props}>
+        <promptContext.Provider
+            value={{
+                getSearchData,
+                isOpen,
+                namespace,
+                setOpen,
+                api,
+                className,
+                currentPageText,
+                initialResults,
+                slugToHref,
+            }}
+        >
             <Variables>
                 <CommandDialog
                     className=''
