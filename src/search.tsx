@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import {
     CornerDownLeft,
+    FileTextIcon,
     HashIcon,
     Laptop,
     Moon,
@@ -291,7 +292,7 @@ export function SearchAndChat({
                                 setMode('chat')
                             }}
                         >
-                            <StarsIcon className='w-7 mr-2' />
+                            <StarsIcon className='w-5 mr-2' />
                             <span className='font-bold'>Ask AI</span>
                             {value && ': '}
                             {value}
@@ -365,7 +366,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
     return [
         {
             content: 'Turn the following page into a diagram',
-            icon: <SendToBackIcon className='w-7' />,
+            icon: <SendToBackIcon className='w-5' />,
             onSelect() {
                 additionalMessages.current = [
                     {
@@ -384,7 +385,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
         }, //
         {
             content: 'Summarize the current page',
-            icon: <FileBoxIcon className='w-7' />,
+            icon: <FileBoxIcon className='w-5' />,
             onSelect() {
                 additionalMessages.current = [
                     {
@@ -403,7 +404,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
         }, //
         {
             content: 'Pros and cons of the current page',
-            icon: <ChevronsUpDownIcon className='w-7' />,
+            icon: <ChevronsUpDownIcon className='w-5' />,
             onSelect() {
                 additionalMessages.current = [
                     {
@@ -422,7 +423,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
         }, //
         {
             content: 'Todo list for the current page',
-            icon: <CheckSquare2Icon className='w-7' />,
+            icon: <CheckSquare2Icon className='w-5' />,
             onSelect() {
                 additionalMessages.current = [
                     {
@@ -441,7 +442,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
         }, //
         {
             content: 'Explain this page like i am 5',
-            icon: <BabyIcon className='w-7' />,
+            icon: <BabyIcon className='w-5' />,
             onSelect() {
                 additionalMessages.current = [
                     {
@@ -460,7 +461,7 @@ const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
         }, //
         {
             content: 'Give me an outline of the current page',
-            icon: <Layers2Icon className='w-7' />,
+            icon: <Layers2Icon className='w-5' />,
             onSelect() {
                 additionalMessages.current = [
                     {
@@ -507,15 +508,15 @@ export function SearchResultItem({
                 <div className='appearance-none flex flex-col gap-1'>
                     <div className='flex gap-3 items-stretch'>
                         {pl && (
-                            <div className='w-7 flex -my-3 flex-col min-h-full shrink-0 items-center'>
+                            <div className='w-5 flex -my-3 flex-col min-h-full shrink-0 items-center'>
                                 <div className='w-px border-l min-h-full grow'></div>
                             </div>
                         )}
                         <div className='mt-px shrink-0 flex h-6 items-center justify-center'>
                             {type === 'page' ? (
-                                <DocIcon className='shrink-0 w-7 opacity-70' />
+                                <FileTextIcon className='shrink-0 w-5 opacity-70' />
                             ) : (
-                                <HashIcon className='shrink-0 w-7 opacity-70' />
+                                <HashIcon className='shrink-0 w-5 opacity-70' />
                             )}
                         </div>
                         <div className='flex flex-col gap-px'>
@@ -629,15 +630,15 @@ export function DarkModeCommands({ setOpen }) {
     return (
         <CommandGroup heading='Theme'>
             <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
-                <SunMedium className='mr-2 w-7' />
+                <SunMedium className='mr-2 w-5' />
                 Light
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
-                <Moon className='mr-2 w-7' />
+                <Moon className='mr-2 w-5' />
                 Dark
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
-                <Laptop className='mr-2 w-7' />
+                <Laptop className='mr-2 w-5' />
                 System
             </CommandItem>
         </CommandGroup>
