@@ -309,16 +309,14 @@ export function SearchAndChat({
                                     terms={terms}
                                     href={href}
                                     slug={node.slug}
+                                    setOpen={setOpen}
                                     text=''
                                 />
                             )
                             if (!sections?.length) return pageNode
 
                             return (
-                                <div
-                                    className='flex flex-col gap-2'
-                                    key={node.slug}
-                                >
+                                <div className='flex flex-col' key={node.slug}>
                                     {pageNode}
                                     <div className=''>
                                         {sections.map((node) => {
@@ -326,6 +324,7 @@ export function SearchAndChat({
 
                                             return (
                                                 <SearchResultItem
+                                                    setOpen={setOpen}
                                                     pl
                                                     key={node.slug}
                                                     title={
@@ -493,6 +492,7 @@ export function SearchResultItem({
     title,
     href,
     terms,
+    setOpen,
 }) {
     const router = useRouter()
     return (
@@ -503,6 +503,7 @@ export function SearchResultItem({
                 value={slug}
                 onSelect={() => {
                     router.push(href)
+                    setOpen(false)
                 }}
             >
                 <div className='appearance-none flex flex-col gap-1'>
