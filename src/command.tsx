@@ -63,11 +63,11 @@ const CommandDialog = ({
 const CommandInput = React.forwardRef<
     any,
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
-        showReturnButton?: boolean
+        endContent?: React.ReactNode
         onEnter?: () => void
         isLoading?: boolean
     }
->(({ className, isLoading, onEnter, showReturnButton, ...props }, ref) => {
+>(({ className, isLoading, onEnter, endContent, ...props }, ref) => {
     const onEnterRef = React.useRef(onEnter)
     onEnterRef.current = onEnter
     React.useEffect(() => {
@@ -94,15 +94,7 @@ const CommandInput = React.forwardRef<
                 {...props}
             />
 
-            {showReturnButton && (
-                <button onClick={onEnter} className='shrink-0 flex'>
-                    {isLoading ? (
-                        <PauseIcon className='w-5' />
-                    ) : (
-                        <CornerDownLeft className='w-5' />
-                    )}
-                </button>
-            )}
+            {endContent && endContent}
         </div>
     )
 })

@@ -4,7 +4,17 @@ import useSwr from 'swr'
 import MiniSearch from 'minisearch'
 
 import { PagesTree, SearchDataEntry } from './types'
-import { debounce, groupBy, pagesTreeBfs } from './utils'
+import {
+    debounce,
+    deduplicateByKeyFn,
+    groupBy,
+    mean,
+    pagesTreeBfs,
+} from './utils'
+
+type SearchResult = SearchDataEntry & {
+    sections?: SearchDataEntry[]
+}
 
 export function useMiniSearch({
     pagesTree,
@@ -58,7 +68,7 @@ export function useMiniSearch({
                 }
             })
     }, [pagesTree])
-    const [results, setResults] = React.useState(initialResults)
+    const [results, setResults] = React.useState<SearchResult[]>(initialResults)
     React.useEffect(() => {
         if (!isOpen) {
             setQuery('')
@@ -89,7 +99,7 @@ export function useMiniSearch({
             return
         }
 
-        const results = miniSearch
+        const searchResult = miniSearch
             .search(query, {
                 prefix: true,
                 fuzzy: 0.15,
@@ -117,17 +127,62 @@ export function useMiniSearch({
             })
             .slice(0, MAX_SEARCH_RESULTS)
 
-        const data = results.map((x) => {
+        const data = searchResult.map((x) => {
             const hit = searchableItems[x.index]
-            
-            return hit
+            const { score } = x
+            return { hit, score }
         })
-        // const grouped = groupBy(data, (x) => x.slug.split('/')[0])
-        setResults(data || [])
+        const grouped = groupBy(data, ({ hit }) => {
+            if (hit.type !== 'page') {
+                return hit.parent || ''
+            } else {
+                return ''
+            }
+        }).flatMap((x, i) => {
+            if (!x.key) {
+                return x.group.map((item, i) => {
+                    return {
+                        key: String(-(i + 1)),
+                        group: [item],
+                    }
+                })
+            }
+            return x
+        })
+        // console.log('grouped', grouped)
+
+        const sortedGroups = grouped.sort((a, b) => {
+            const scoreA = mean(a.group.map((x) => x.score))
+            const scoreB = mean(b.group.map((x) => x.score))
+
+            return scoreA < scoreB ? 1 : -1
+        })
+
+        let results: SearchResult[] = sortedGroups.flatMap(
+            ({ key: parentIndex, group }) => {
+                const parent = searchableItems[parseInt(parentIndex)]
+                if (!parent) {
+                    return group.map((x) => x.hit)
+                }
+                const sections = group
+                    .sort((a, b) => {
+                        return a.score < b.score ? 1 : -1
+                    })
+                    .map((x) => x.hit)
+
+                return {
+                    ...parent,
+                    sections,
+                }
+            },
+        )
+        results = deduplicateByKeyFn(results, (x) => x.slug)
+        // console.log('results', results)
+        setResults(results)
         return
     }, [query, isLoading, miniSearch, initialResults])
 
-    return { onQueryChange, results, searchableItems }
+    return { onQueryChange, isLoading, results, searchableItems }
 }
 
 export function usePrevious(value) {

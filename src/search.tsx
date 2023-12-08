@@ -4,7 +4,14 @@ import colors from 'tailwindcss/colors'
 import { findAll } from 'highlight-words-core'
 import Link from 'next/link'
 
-import { Laptop, Moon, SunMedium } from 'lucide-react'
+import {
+    CornerDownLeft,
+    HashIcon,
+    Laptop,
+    Moon,
+    PauseIcon,
+    SunMedium,
+} from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { memo, useCallback } from 'react'
 import { CommandGroup } from './command'
@@ -37,6 +44,8 @@ import {
 } from './command'
 import { useMiniSearch, useRouteChanged } from './hooks'
 import { PagesTree, SearchDataEntry } from './types'
+import { useRouter } from 'next/navigation'
+import clsx from 'clsx'
 
 function Variables({ children }) {
     return (
@@ -91,12 +100,17 @@ export function SearchAndChat({
         setOpen(false)
         setMessages([])
     })
-    const { results, onQueryChange } = useMiniSearch({
+    const {
+        results,
+        isLoading: isSearching,
+        onQueryChange,
+    } = useMiniSearch({
         pagesTree,
         getSearchData,
         searchDataKey,
         isOpen,
     })
+
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
             if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -185,7 +199,7 @@ export function SearchAndChat({
         })
     }
     const showChatIdeas = !messages.length && !value && !isLoading
-
+    const terms = value.split(/ +/).filter((x) => x)
     return (
         <Variables>
             <CommandDialog
@@ -200,7 +214,19 @@ export function SearchAndChat({
                     ref={input}
                     autoFocus
                     value={value}
-                    showReturnButton={mode === 'chat'}
+                    endContent={
+                        mode === 'chat' ? (
+                            <button onClick={onEnter} className='shrink-0 flex'>
+                                {isLoading ? (
+                                    <PauseIcon className='w-5' />
+                                ) : (
+                                    <CornerDownLeft className='w-5' />
+                                )}
+                            </button>
+                        ) : (
+                            isSearching && <Spinner />
+                        )
+                    }
                     isLoading={isLoading}
                     onEnter={() => {
                         if (mode === 'chat') {
@@ -270,17 +296,51 @@ export function SearchAndChat({
                             {value && ': '}
                             {value}
                         </CommandItem>
-                        {results.map(({ hit: node, terms }, i) => {
+                        {results.map((node, i) => {
+                            const sections = node.sections
                             const href = slugToHref(node.slug)
 
-                            return (
+                            const pageNode = (
                                 <SearchResultItem
                                     key={node.slug}
                                     title={node.name || basename(node.slug)}
+                                    type={node.type}
                                     terms={terms}
                                     href={href}
-                                    node={node}
+                                    slug={node.slug}
+                                    text=''
                                 />
+                            )
+                            if (!sections?.length) return pageNode
+
+                            return (
+                                <div
+                                    className='flex flex-col gap-2'
+                                    key={node.slug}
+                                >
+                                    {pageNode}
+                                    <div className=''>
+                                        {sections.map((node) => {
+                                            const href = slugToHref(node.slug)
+
+                                            return (
+                                                <SearchResultItem
+                                                    pl
+                                                    key={node.slug}
+                                                    title={
+                                                        node.name ||
+                                                        basename(node.slug)
+                                                    }
+                                                    type={node.type}
+                                                    terms={terms}
+                                                    href={href}
+                                                    slug={node.slug}
+                                                    text={node.text}
+                                                />
+                                            )
+                                        })}
+                                    </div>
+                                </div>
                             )
                         })}
                         <CommandSeparator />
@@ -291,8 +351,6 @@ export function SearchAndChat({
         </Variables>
     )
 }
-
-
 
 const getMessageIdeas = ({ additionalMessages, markdown, append }) => {
     const getBodyOptions = () => {
@@ -426,19 +484,39 @@ function basename(path) {
     return path.split(/[\\/]/).pop()
 }
 
-export function SearchResultItem({ node, title, href, terms }) {
+export function SearchResultItem({
+    slug,
+    pl = false,
+    text,
+    type,
+    title,
+    href,
+    terms,
+}) {
+    const router = useRouter()
     return (
         <Link href={href}>
             <CommandItem
-                key={node.slug}
-                id={node.slug}
-                value={node.slug}
-                onSelect={() => {}}
+                key={slug}
+                id={slug}
+                value={slug}
+                onSelect={() => {
+                    router.push(href)
+                }}
             >
                 <div className='appearance-none flex flex-col gap-1'>
-                    <div className='flex gap-3 items-center'>
+                    <div className='flex gap-3 items-stretch'>
+                        {pl && (
+                            <div className='w-7 flex -my-3 flex-col min-h-full shrink-0 items-center'>
+                                <div className='w-px border-l min-h-full grow'></div>
+                            </div>
+                        )}
                         <div className='mt-px shrink-0 flex h-6 items-center justify-center'>
-                            <DocIcon className='shrink-0 h-7 opacity-70' />
+                            {type === 'page' ? (
+                                <DocIcon className='shrink-0 w-7 opacity-70' />
+                            ) : (
+                                <HashIcon className='shrink-0 w-7 opacity-70' />
+                            )}
                         </div>
                         <div className='flex flex-col gap-px'>
                             {/* <div className='text-xs font-semibold opacity-70'>
@@ -450,13 +528,16 @@ export function SearchResultItem({ node, title, href, terms }) {
                                     textToHighlight={title}
                                 />
                             </div>
+
+                            <div className='opacity-70 text-xs max-w-full'>
+                                {!!text && (
+                                    <SearchedText
+                                        terms={terms}
+                                        textToHighlight={text}
+                                    />
+                                )}
+                            </div>
                         </div>
-                    </div>
-                    <div className='opacity-70 text-xs max-w-full'>
-                        <SearchedText
-                            terms={terms}
-                            textToHighlight={node.text}
-                        />
                     </div>
                 </div>
             </CommandItem>
@@ -560,5 +641,44 @@ export function DarkModeCommands({ setOpen }) {
                 System
             </CommandItem>
         </CommandGroup>
+    )
+}
+
+function Spinner({ className = '' }) {
+    return (
+        <>
+            <style>{`
+                .spinner {
+                    position: relative;
+                    pointer-events: none;
+                }
+
+                .spinner::after {
+                    content: '';
+                    position: absolute !important;
+                    top: calc(50% - (1em / 2));
+                    left: calc(50% - (1em / 2));
+                    display: block;
+                    width: 1em;
+                    height: 1em;
+                    border: 2px solid currentColor;
+                    border-radius: 9999px;
+                    border-right-color: transparent;
+                    border-top-color: transparent;
+                    animation: spinAround 500ms infinite linear;
+                }
+
+                @keyframes spinAround {
+                    from {
+                        transform: rotate(0deg);
+                    }
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+            `}</style>
+
+            <div className={clsx('spinner w-5 h-5', className)} />
+        </>
     )
 }
