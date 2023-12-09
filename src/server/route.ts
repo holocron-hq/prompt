@@ -17,7 +17,6 @@ import OpenAI from 'openai'
 
 import { TurboPufferApiClientV1 } from 'turbopuffer-sdk/src'
 
-
 export function createHandler({
     env,
     onError = console.error,
@@ -59,26 +58,13 @@ export function createHandler({
                 ]
             } else {
                 const isFirstMessage = messages.length === 1
-                messages = [
-                    {
-                        content: oneLine`Given the following sections from the
-                    documentation, answer the question using only that information,
-                    outputted in markdown format. If you are unsure and the answer
-                    is not explicitly written in the documentation, say
-                    "Sorry, I don't know how to help with that." Be super short and concise.`,
-                        role: 'system',
-                        // id: 'system-message',
-                    },
-
-                    ...messages,
-                ]
-                const puffer = new TurboPufferApiClientV1<SearchDataEntry>({
-                    token: env.TURBOPUFFER_KEY,
-                })
-
                 const firstMessage = messages.filter(
                     (x) => x.role === 'user',
                 )[0].content
+
+                const puffer = new TurboPufferApiClientV1<SearchDataEntry>({
+                    token: env.TURBOPUFFER_KEY,
+                })
 
                 const embedding = await openai.embeddings.create({
                     input: [firstMessage],
@@ -101,21 +87,37 @@ export function createHandler({
 
                 let tokenCount = 0
 
+                const sources = sections.map((x) => {
+                    const { slug, name, text, type } = x.attributes || {}
+                    const source: Partial<SearchDataEntry> = {
+                        slug,
+                        name,
+                        text,
+                        type,
+                    }
+                    return source
+                })
                 if (isFirstMessage) {
                     data.append({
-                        sources: sections.map((x) => {
-                            const { slug, name, text, type } =
-                                x.attributes || {}
-                            const source: Partial<SearchDataEntry> = {
-                                slug,
-                                name,
-                                text,
-                                type,
-                            }
-                            return source
-                        }),
+                        sources,
                     } as any)
                 }
+                const firstPart = sources.length
+                    ? oneLine`Given the following sections from the
+                documentation, answer the question using only that information,
+                outputted in markdown format (but not inside a code snippet). `
+                    : ''
+                messages = [
+                    {
+                        content: oneLine`${firstPart}If you are unsure and the answer
+                        is not explicitly written in the documentation, say
+                        "Sorry, I don't know how to help with that." Be super short and concise.`,
+                        role: 'system',
+                        // id: 'system-message',
+                    },
+
+                    ...messages,
+                ]
 
                 const userMessagesToWrap = messages
                     .filter((x) => x.role === 'user')
@@ -162,6 +164,7 @@ export function createHandler({
                 temperature: 0.5,
                 stream: true,
             })
+            console.log(messages)
 
             const stream = OpenAIStream(res, {
                 experimental_streamData: true,

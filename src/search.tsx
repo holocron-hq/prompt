@@ -213,7 +213,7 @@ export function SearchAndChat({
     }
     const showChatIdeas = !messages.length && !value && !isLoading
     const terms = [value]
-    // console.log({ data })
+    // console.log({ data, messages })
     return (
         <promptContext.Provider
             value={{
