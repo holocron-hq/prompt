@@ -40,3 +40,7 @@ export function deduplicateByKeyFn<T>(arr: T[], key: (k: T) => string) {
     }
     return res
 }
+
+export function basename(path) {
+    return path.split(/[\\/]/).pop()
+}

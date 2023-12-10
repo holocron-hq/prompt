@@ -51,6 +51,7 @@ import {
     useRouteChanged,
 } from './hooks'
 import { DialogPosition, SearchDataEntry, SearchEndpointBody } from './types'
+import { basename } from './utils'
 
 function Variables({ children }) {
     return (
@@ -213,6 +214,7 @@ export function SearchAndChat({
     }
     const showChatIdeas = !messages.length && !value && !isLoading
     const terms = [value]
+    const sources = data?.map((x: any) => x.sources) || []
     // console.log({ data, messages })
     return (
         <promptContext.Provider
@@ -295,20 +297,7 @@ export function SearchAndChat({
                                 })
                             ) : (
                                 <ChatList
-                                    sources={
-                                        data?.map((x: any) =>
-                                            x.sources?.map((source) => {
-                                                return {
-                                                    href: slugToHref(
-                                                        source.slug,
-                                                    ),
-                                                    title:
-                                                        source.title ||
-                                                        source.slug,
-                                                }
-                                            }),
-                                        ) || []
-                                    }
+                                    sources={sources}
                                     messages={messages.filter(
                                         (x) =>
                                             !additionalMessages.current.some(
@@ -524,10 +513,6 @@ const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
             },
         },
     ]
-}
-
-function basename(path) {
-    return path.split(/[\\/]/).pop()
 }
 
 export function SearchResultItem({

@@ -5,6 +5,7 @@ import { clsx } from 'clsx'
 import { SafeMdxRenderer } from 'safe-mdx'
 import { SearchDataEntry } from './types'
 import { usePromptContext } from './hooks'
+import { basename } from './utils'
 
 export interface ChatMessageProps {
     message: Message
@@ -114,7 +115,7 @@ function Sources({ sources }: { sources: SearchDataEntry[] }) {
                             href={slugToHref!(x.slug) || ''}
                             className='text-sm'
                         >
-                            {x.name}
+                            {x.name || basename(x.slug)}
                         </Link>
                     )
                 })}
