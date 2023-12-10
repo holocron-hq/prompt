@@ -98,19 +98,50 @@ const CommandInput = React.forwardRef<
 
     return (
         <div
-            className='flex items-center w-full border-b px-4'
+            className={clsx(
+                'flex relative items-center w-full border-b px-4',
+                isLoading && 'search-loader',
+            )}
+            data-loading={isLoading}
             cmdk-input-wrapper=''
         >
             <CommandPrimitive.Input
                 ref={ref}
                 className={clsx(
-                    'placeholder:text-[--foreground]/80 !ring-0 pr-3 grow flex h-16 rounded-md bg-transparent py-3 outline-none disabled:cursor-not-allowed disabled:opacity-50',
+                    ' placeholder:text-[--foreground]/80 !ring-0 pr-3 grow flex h-16 rounded-md bg-transparent py-3 outline-none disabled:cursor-not-allowed disabled:opacity-50',
                     className,
                 )}
                 {...props}
             />
 
             {endContent && endContent}
+            <style>{`
+            .search-loader:after {
+                content: "";
+                width: 50%;
+                left: 0;
+                height: 2px;
+                position: absolute;
+                background: linear-gradient(90deg,transparent 0,var(--primary-color) 50%,transparent 100%);
+                opacity: 0.6;
+                bottom: 0;
+                animation: loadingAnimation 1.1s cubic-bezier(.455,.03,.515,.955) infinite;
+                
+            }
+
+            @keyframes loadingAnimation {
+                0% {
+                    opacity: 1;
+                    transform: translateX(-100%)
+                }
+            
+                to {
+                    opacity: 1;
+                    transform: translateX(300%)
+                }
+            }
+            
+            `}</style>
         </div>
     )
 })
@@ -181,7 +212,7 @@ const CommandItem = React.forwardRef<
     <CommandPrimitive.Item
         ref={ref}
         className={clsx(
-            'relative flex cursor-default select-none items-center data-[selected=true]:!border-[--primary] border-l-4  !border-transparent px-4 pl-3 py-3 outline-none aria-selected:bg-[--accent] aria-selected:text-[--accent-foreground] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+            'relative flex cursor-default select-none items-center data-[selected=true]:!border-[--primary-color] border-l-4  !border-transparent px-4 pl-3 py-3 outline-none aria-selected:bg-[--accent] aria-selected:text-[--accent-foreground] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
             className,
         )}
         {...props}

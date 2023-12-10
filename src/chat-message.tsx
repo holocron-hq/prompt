@@ -6,6 +6,12 @@ import { SafeMdxRenderer } from 'safe-mdx'
 import { SearchDataEntry } from './types'
 import { usePromptContext } from './hooks'
 import { basename } from './utils'
+import {
+    CpuIcon,
+    UserCircle2Icon,
+    UserCircleIcon,
+    UserIcon,
+} from 'lucide-react'
 
 export interface ChatMessageProps {
     message: Message
@@ -17,27 +23,23 @@ export function ChatMessage({
     message,
     ...props
 }: ChatMessageProps) {
+    const name = message.role === 'user' ? 'You' : 'AI'
     return (
         <div className={clsx('group relative flex items-start')} {...props}>
             <div
                 className={clsx(
                     'flex h-10 w-10 mt-1 shrink-0 select-none items-center justify-center rounded-md border shadow',
-                    message.role === 'user'
-                        ? 'bg-[--background]'
-                        : 'dark:bg-white bg-white text-[--primary-foreground]',
+                    'dark:bg-white bg-gray-800 text-gray-200 dark:text-gray-500',
                 )}
             >
                 {message.role === 'user' ? (
-                    <IconUser className={clsx('w-6')} />
+                    <UserIcon className={clsx('w-6')} />
                 ) : (
-                    <img
-                        className={clsx('h-6 w-6 rounded dark:invert')}
-                        alt='Assistant avatar'
-                        src='https://holocron.so/favicon.png'
-                    />
+                    <CpuIcon className={clsx('w-6')} />
                 )}
             </div>
-            <div className='flex-1 ml-4 space-y-2 overflow-hidden'>
+            <div className='flex-1 ml-4 flex flex-col overflow-x-hidden'>
+                <div className='font-bold'>{name}</div>
                 <Prose className={clsx('', className)}>
                     <SafeMdxRenderer
                         code={message.content}

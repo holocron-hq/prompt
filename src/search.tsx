@@ -1,4 +1,6 @@
 'use client'
+import { colord } from 'colord'
+
 import colors from 'tailwindcss/colors'
 
 import { findAll } from 'highlight-words-core'
@@ -54,6 +56,10 @@ import { DialogPosition, SearchDataEntry, SearchEndpointBody } from './types'
 import { basename } from './utils'
 
 function Variables({ children }) {
+    const { primaryColor: primaryColorString } = usePromptContext()
+    const primaryColor = colord(primaryColorString!)
+    const br = primaryColor.brightness()
+    const primaryDark = primaryColor.lighten(0.6 - br)
     return (
         <div className='holocron-prompt-scope'>
             {children}
@@ -64,12 +70,21 @@ function Variables({ children }) {
                     --background: ${colors.neutral[50]};
                     --accent-foreground: ${colors.neutral[800]};
                     --primary-foreground: ${colors.neutral[800]};
+                    --primary-color: ${primaryColor
+                        .lighten(0.4 - primaryColor.brightness())
+                        .toRgbString()};
+                    --primary-highlight: ${primaryColor
+                        .alpha(0.2)
+                        .toRgbString()};
                 }
                 .dark .holocron-prompt-scope {
                     --accent: ${colors.neutral[700]};
                     --background: ${colors.neutral[800]};
                     --accent-foreground: ${colors.neutral[100]};
-                    --primary-foreground: ${colors.neutral[100]};
+                    --primary-color: ${primaryDark.toRgbString()};
+                    --primary-highlight: ${primaryDark
+                        .alpha(0.2)
+                        .toRgbString()};
                 }
                 `}
             </style>
@@ -90,6 +105,7 @@ export type SearchAndChatProps = {
     initialResults?: SearchDataEntry[]
     api?: string
     position?: DialogPosition
+    primaryColor?: string
 }
 
 export function SearchAndChat({
@@ -103,6 +119,7 @@ export function SearchAndChat({
     api = '/api/docs-chat',
     slugToHref = (x) => x,
     position,
+    primaryColor = colors.blue[500],
 }: SearchAndChatProps) {
     const [mode, setMode] = useState<'search' | 'chat'>('search')
     const [chatId, setChatId] = useState(() => v4())
@@ -152,7 +169,14 @@ export function SearchAndChat({
 
     // TODO let user see previous chats, store them in localstorage
 
-    const { messages, append, data, setMessages, stop, isLoading } = useChat({
+    const {
+        messages,
+        append,
+        data,
+        setMessages,
+        stop,
+        isLoading: isLoadingChat,
+    } = useChat({
         initialMessages: [],
         api,
         id: chatId,
@@ -194,7 +218,7 @@ export function SearchAndChat({
     }, [isOpen])
 
     const onEnter = async () => {
-        if (isLoading) {
+        if (isLoadingChat) {
             console.log('stopping generation')
             stop()
             return
@@ -212,7 +236,8 @@ export function SearchAndChat({
             content: q,
         })
     }
-    const showChatIdeas = !messages.length && !value && !isLoading
+    const isLoading = isSearching || isLoadingChat
+    const showChatIdeas = !messages.length && !value && !isLoadingChat
     const terms = [value]
     const sources = data?.map((x: any) => x.sources) || []
     // console.log({ data, messages })
@@ -228,6 +253,7 @@ export function SearchAndChat({
                 currentPageText,
                 initialResults,
                 slugToHref,
+                primaryColor,
             }}
         >
             <Variables>
@@ -250,7 +276,7 @@ export function SearchAndChat({
                                     onClick={onEnter}
                                     className='shrink-0 flex'
                                 >
-                                    {isLoading ? (
+                                    {isLoadingChat ? (
                                         <PauseIcon className='w-5' />
                                     ) : (
                                         <CornerDownLeft className='w-5' />
@@ -315,6 +341,7 @@ export function SearchAndChat({
                             <CommandItem
                                 onSelect={() => {
                                     setMode('chat')
+                                    input.current?.focus()
                                 }}
                             >
                                 <StarsIcon className='w-5 mr-2' />
@@ -611,7 +638,10 @@ export const SearchedText = memo<{ terms; textToHighlight: string }>(
 
             if (highlight) {
                 return (
-                    <mark key={i} className='inline bg-amber-200/80'>
+                    <mark
+                        key={i}
+                        className='inline bg-[--primary-highlight]  text-[--primary-color]'
+                    >
                         {text}
                     </mark>
                 )
