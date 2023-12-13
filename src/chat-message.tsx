@@ -30,7 +30,9 @@ export function ChatMessage({
             <div
                 className={clsx(
                     'flex h-10 w-10 mt-1 shrink-0 select-none items-center justify-center rounded-md border shadow',
-                    'dark:bg-white bg-gray-800 text-gray-200 dark:text-gray-500',
+                    message.role === 'user'
+                        ? 'bg-white text-gray-500'
+                        : 'bg-black text-white',
                 )}
             >
                 {message.role === 'user' ? (

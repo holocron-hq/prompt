@@ -59,8 +59,11 @@ import { basename } from './utils'
 function Variables({ children }) {
     const { primaryColor: primaryColorString } = usePromptContext()
     const primaryColor = colord(primaryColorString!)
-    const br = primaryColor.brightness()
-    const primaryDark = primaryColor.lighten(0.6 - br)
+
+    const primaryDark = primaryColor
+        .lighten(0.7 - primaryColor.brightness())
+        .saturate(0.8)
+
     return (
         <div className='holocron-prompt-scope'>
             {children}
@@ -69,10 +72,11 @@ function Variables({ children }) {
                 .holocron-prompt-scope {
                     --accent: ${colors.neutral[100]};
                     --background: ${colors.neutral[50]};
-                    --accent-foreground: ${colors.neutral[800]};
-                    --primary-foreground: ${colors.neutral[800]};
-                    --primary-color: ${primaryColor
+                    --primary-foreground: ${primaryColor
                         .lighten(0.4 - primaryColor.brightness())
+                        .toRgbString()};
+                    --primary-color: ${primaryColor
+                        .lighten(0.5 - primaryColor.brightness())
                         .toRgbString()};
                     --primary-highlight: ${primaryColor
                         .alpha(0.2)
@@ -81,10 +85,12 @@ function Variables({ children }) {
                 .dark .holocron-prompt-scope {
                     --accent: ${colors.neutral[700]};
                     --background: ${colors.neutral[800]};
-                    --accent-foreground: ${colors.neutral[100]};
+                    --primary-foreground: ${primaryDark
+                        .lighten(0.8 - primaryDark.brightness())
+                        .toRgbString()};
                     --primary-color: ${primaryDark.toRgbString()};
                     --primary-highlight: ${primaryDark
-                        .alpha(0.2)
+                        .alpha(0.1)
                         .toRgbString()};
                 }
                 `}
@@ -667,7 +673,7 @@ export const SearchedText = memo<{ terms; textToHighlight: string }>(
                 return (
                     <mark
                         key={i}
-                        className='inline bg-[--primary-highlight]  text-[--primary-color]'
+                        className=' inline bg-[--primary-highlight]  text-[--primary-foreground]'
                     >
                         {text}
                     </mark>

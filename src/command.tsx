@@ -212,7 +212,7 @@ const CommandItem = React.forwardRef<
     <CommandPrimitive.Item
         ref={ref}
         className={clsx(
-            'relative flex cursor-default select-none items-center data-[selected=true]:!border-[--primary-color] border-l-4  !border-transparent px-4 pl-3 py-3 outline-none aria-selected:bg-[--accent] aria-selected:text-[--accent-foreground] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+            'relative flex cursor-default select-none items-center data-[selected=true]:!border-[--primary-color] border-l-4  !border-transparent px-4 pl-3 py-3 outline-none aria-selected:bg-[--accent] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
             className,
         )}
         {...props}
