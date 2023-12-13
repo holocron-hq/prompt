@@ -106,6 +106,8 @@ export type SearchAndChatProps = {
     api?: string
     position?: DialogPosition
     primaryColor?: string
+    initialMessage?: string
+    chatbotName?: string
 }
 
 export function SearchAndChat({
@@ -119,6 +121,8 @@ export function SearchAndChat({
     api = '/api/docs-chat',
     slugToHref = (x) => x,
     position,
+    initialMessage = '',
+    chatbotName = '',
     primaryColor = colors.blue[500],
 }: SearchAndChatProps) {
     const [mode, setMode] = useState<'search' | 'chat'>('search')
@@ -177,7 +181,15 @@ export function SearchAndChat({
         stop,
         isLoading: isLoadingChat,
     } = useChat({
-        initialMessages: [],
+        initialMessages: initialMessage
+            ? [
+                  {
+                      content: initialMessage,
+                      role: 'assistant',
+                      id: 'initial',
+                  },
+              ]
+            : [],
         api,
         id: chatId,
         body,
@@ -254,6 +266,8 @@ export function SearchAndChat({
                 initialResults,
                 slugToHref,
                 primaryColor,
+                chatbotName,
+                initialMessage,
             }}
         >
             <Variables>

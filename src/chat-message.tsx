@@ -23,7 +23,8 @@ export function ChatMessage({
     message,
     ...props
 }: ChatMessageProps) {
-    const name = message.role === 'user' ? 'You' : 'AI'
+    const { chatbotName } = usePromptContext()
+    const name = message.role === 'user' ? 'You' : chatbotName || 'AI'
     return (
         <div className={clsx('group relative flex items-start')} {...props}>
             <div

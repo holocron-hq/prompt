@@ -15,7 +15,7 @@ const Command = React.forwardRef<
     <CommandPrimitive
         ref={ref}
         className={clsx(
-            'flex z-10 bg-[--background] h-full w-full flex-col overflow-hidden rounded-md  ',
+            'flex z-10 bg-[--background] h-full max-w-full flex-col overflow-hidden rounded-md  ',
             className,
         )}
         {...props}
@@ -45,7 +45,7 @@ const CommandDialog = ({
             {isOpen && (
                 <div
                     onClick={() => onOpenChange(false)}
-                    className='fixed z-10 inset-0 bg-gray-900 opacity-60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'
+                    className='fixed z-10 inset-0 bg-gray-900/60 backdrop-blur data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'
                 ></div>
             )}
             <div ref={divRef} />
@@ -57,7 +57,7 @@ const CommandDialog = ({
                     className,
                     'holocron-prompt-scope fixed rounded-lg z-20 ring-[--accent] grid w-full gap-4 bg-[--background] shadow-lg duration-200 ',
                     !position &&
-                        'max-w-3xl left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]',
+                        'max-w-[90%] lg:max-w-3xl left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]',
                 )}
                 style={position}
             >
