@@ -108,6 +108,7 @@ export type SearchAndChatProps = {
     primaryColor?: string
     initialMessage?: string
     chatbotName?: string
+    disableChat?: boolean
 }
 
 export function SearchAndChat({
@@ -124,7 +125,23 @@ export function SearchAndChat({
     initialMessage = '',
     chatbotName = '',
     primaryColor = colors.blue[500],
+    disableChat,
 }: SearchAndChatProps) {
+    const context = {
+        getSearchData,
+        isOpen,
+        namespace,
+        setOpen,
+        api,
+        className,
+        currentPageText,
+        initialResults,
+        slugToHref,
+        primaryColor,
+        chatbotName,
+        disableChat,
+        initialMessage,
+    }
     const [mode, setMode] = useState<'search' | 'chat'>('search')
     const [chatId, setChatId] = useState(() => v4())
     useRouteChanged(() => {
@@ -254,22 +271,7 @@ export function SearchAndChat({
     const sources = data?.map((x: any) => x.sources) || []
     // console.log({ data, messages })
     return (
-        <promptContext.Provider
-            value={{
-                getSearchData,
-                isOpen,
-                namespace,
-                setOpen,
-                api,
-                className,
-                currentPageText,
-                initialResults,
-                slugToHref,
-                primaryColor,
-                chatbotName,
-                initialMessage,
-            }}
-        >
+        <promptContext.Provider value={context}>
             <Variables>
                 <CommandDialog
                     className=''
@@ -352,17 +354,19 @@ export function SearchAndChat({
                     {mode === 'search' && (
                         <CommandList key='list'>
                             <CommandEmpty>No results found.</CommandEmpty>
-                            <CommandItem
-                                onSelect={() => {
-                                    setMode('chat')
-                                    input.current?.focus()
-                                }}
-                            >
-                                <StarsIcon className='w-5 mr-2' />
-                                <span className='font-bold'>Ask AI</span>
-                                {value && ': '}
-                                {value}
-                            </CommandItem>
+                            {!disableChat && (
+                                <CommandItem
+                                    onSelect={() => {
+                                        setMode('chat')
+                                        input.current?.focus()
+                                    }}
+                                >
+                                    <StarsIcon className='w-5 mr-2' />
+                                    <span className='font-bold'>Ask AI</span>
+                                    {value && ': '}
+                                    {value}
+                                </CommandItem>
+                            )}
                             {results.map((node, i) => {
                                 const sections = node.sections
                                 const href = slugToHref(node.slug)
