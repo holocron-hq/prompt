@@ -49,6 +49,7 @@ import {
 import {
     promptContext,
     useMiniSearch,
+    usePrevious,
     usePromptContext,
     useRouteChanged,
 } from './hooks'
@@ -230,6 +231,7 @@ export function SearchAndChat({
     }
 
     function reset() {
+        console.log('resetting chat state')
         setMessages([])
         setMode('search')
         setValue('')
@@ -269,6 +271,13 @@ export function SearchAndChat({
     const showChatIdeas = !messages.length && !value && !isLoadingChat
     const terms = [value]
     const sources = data?.map((x: any) => x.sources) || []
+    const previousInitialMessage = usePrevious(initialMessage)
+    useEffect(() => {
+        if (initialMessage && previousInitialMessage !== initialMessage) {
+            setChatId(v4())
+        }
+    }, [initialMessage])
+
     // console.log({ data, messages })
     return (
         <promptContext.Provider value={context}>
