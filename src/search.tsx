@@ -102,6 +102,7 @@ function Variables({ children }) {
 export type SearchAndChatProps = {
     className?: string
     namespace: string
+    body?: any
     currentPageText?: string
     isOpen: boolean
     setOpen: Function
@@ -133,8 +134,10 @@ export function SearchAndChat({
     chatbotName = '',
     primaryColor = colors.blue[500],
     disableChat,
+    body: bodyProp,
 }: SearchAndChatProps) {
     const context = {
+        body: bodyProp,
         getSearchData,
         isOpen,
         namespace,
@@ -191,6 +194,7 @@ export function SearchAndChat({
     }, [isOpen])
 
     const body: Partial<SearchEndpointBody> = {
+        ...bodyProp,
         additionalMessages: additionalMessages.current,
         namespace,
     }
