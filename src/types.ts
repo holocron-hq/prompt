@@ -8,11 +8,18 @@ export interface SearchDataEntry {
     type: 'page' | 'h1' | 'h2' | 'h3'
 }
 
-export type SearchEndpointBody = {
-    messages: CreateMessage[]
-    namespace: string
-    additionalMessages?: CreateMessage[]
-}
+export type SearchEndpointBody =
+    | {
+          type: 'chat'
+          messages: CreateMessage[]
+          namespace: string
+          additionalMessages?: CreateMessage[]
+      }
+    | {
+          type: 'semantic-search'
+          query: string
+          namespace: string
+      }
 
 export type DialogPosition = {
     width

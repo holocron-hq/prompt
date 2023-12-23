@@ -37,6 +37,9 @@ export async function handleSearchAndChatRequest({
     const openai = new OpenAI({
         apiKey: env.OPENAI_KEY,
     })
+    if (json.type === 'semantic-search') {
+        return new Response(null, { status: 204 })
+    }
     try {
         let { messages, namespace, additionalMessages = [] } = json
         const data = new experimental_StreamData()
