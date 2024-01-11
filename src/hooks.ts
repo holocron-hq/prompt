@@ -1,13 +1,14 @@
 import MiniSearch from 'minisearch'
 import { usePathname } from 'next/navigation'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import useSwr from 'swr'
 
 import { SearchAndChatProps } from './search'
 import { SearchDataEntry } from './types'
 import { debounce, deduplicateByKeyFn, groupBy, mean } from './utils'
+import toast from 'react-hot-toast'
 
-type SearchResult = SearchDataEntry & {
+export type SearchResult = SearchDataEntry & {
     sections?: SearchDataEntry[]
 }
 
@@ -197,4 +198,49 @@ export const useRouteChanged = (callback) => {
             callback(pathname)
         }
     }, [pathname, callback])
+}
+
+export function useThrowingFn({ fn: fnToWrap, successMessage = '' }) {
+    const [isLoading, setIsLoading] = useState(false)
+
+    const fn = async function wrappedThrowingFn(...args) {
+        try {
+            setIsLoading(true)
+            const result = await fnToWrap(...args)
+            if (result?.skipToast) {
+                return result
+            }
+            if (successMessage) {
+                toast.success(successMessage)
+            }
+
+            return result
+        } catch (err) {
+            console.error(err)
+            // how to handle unreadable errors? simply don't return them from APIs, just return something went wrong
+            if (err instanceof Error && !err?.['skipToast']) {
+                toast.error(err.message, {})
+                return err
+            }
+            return err
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    return {
+        isLoading,
+        fn,
+    }
+}
+
+export function useDebouncedEffect(
+    effect: React.EffectCallback,
+    delay: number,
+    deps?: React.DependencyList,
+) {
+    useEffect(() => {
+        const handler = setTimeout(() => effect(), delay)
+        return () => clearTimeout(handler)
+    }, deps)
 }

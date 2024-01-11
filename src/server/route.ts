@@ -16,6 +16,46 @@ import { oneLine, stripIndent } from 'common-tags'
 import OpenAI from 'openai'
 
 import { TurboPufferApiClientV1 } from 'turbopuffer-sdk/src'
+import { NextResponse } from 'next/server'
+
+async function semanticSearch({ query, namespace, env }) {
+    const openai = new OpenAI({
+        apiKey: env.OPENAI_KEY,
+    })
+    const puffer = new TurboPufferApiClientV1<SearchDataEntry>({
+        token: env.TURBOPUFFER_KEY,
+    })
+
+    const embedding = await openai.embeddings.create({
+        input: [query],
+        model: 'text-embedding-ada-002',
+    })
+    const include_attributes: Array<keyof SearchDataEntry> = [
+        'slug',
+        'name',
+        'text',
+        'type',
+    ]
+    const sections = await puffer.queryVectors({
+        namespace,
+        distance_metric: 'cosine_distance',
+        include_attributes,
+        vector: embedding.data[0].embedding,
+    })
+    console.log(`found ${sections.length} sections`)
+
+    const sources = sections.map((x) => {
+        const { slug, name, text, type } = x.attributes || {}
+        const source: Partial<SearchDataEntry> = {
+            slug,
+            name,
+            text,
+            type,
+        }
+        return source
+    })
+    return sources
+}
 
 export async function handleSearchAndChatRequest({
     env,
@@ -34,12 +74,17 @@ export async function handleSearchAndChatRequest({
     }
     model?: string
 }) {
+    if (json.type === 'semantic-search') {
+        const sources = await semanticSearch({
+            env,
+            query: json.query,
+            namespace: json.namespace,
+        })
+        return NextResponse.json(sources)
+    }
     const openai = new OpenAI({
         apiKey: env.OPENAI_KEY,
     })
-    if (json.type === 'semantic-search') {
-        return new Response(null, { status: 204 })
-    }
     try {
         let { messages, namespace, additionalMessages = [] } = json
         const data = new experimental_StreamData()
@@ -62,42 +107,12 @@ export async function handleSearchAndChatRequest({
             const isFirstMessage = messages.length === 1
             const firstMessage = messages.filter((x) => x.role === 'user')[0]
                 .content
-
-            const puffer = new TurboPufferApiClientV1<SearchDataEntry>({
-                token: env.TURBOPUFFER_KEY,
-            })
-
-            const embedding = await openai.embeddings.create({
-                input: [firstMessage],
-                model: 'text-embedding-ada-002',
-            })
-
-            const include_attributes: Array<keyof SearchDataEntry> = [
-                'slug',
-                'name',
-                'text',
-                'type',
-            ]
-            const sections = await puffer.queryVectors({
+            const sources = await semanticSearch({
+                env,
+                query: firstMessage,
                 namespace,
-                distance_metric: 'cosine_distance',
-                include_attributes,
-                vector: embedding.data[0].embedding,
             })
-            console.log(`found ${sections.length} sections`)
 
-            let tokenCount = 0
-
-            const sources = sections.map((x) => {
-                const { slug, name, text, type } = x.attributes || {}
-                const source: Partial<SearchDataEntry> = {
-                    slug,
-                    name,
-                    text,
-                    type,
-                }
-                return source
-            })
             // console.log('sources', sources)
             if (isFirstMessage) {
                 data.append({
@@ -129,11 +144,12 @@ export async function handleSearchAndChatRequest({
             const messagesTokens = messages.reduce((acc, x) => {
                 return acc + tokenizer.encode(x.content).length
             }, 0)
+            let tokenCount = 0
             const sourcesMaxTokens = maxInputTokens - messagesTokens - 20 // 20 for the additional wrapping text
             out: for (const [index, message] of userMessagesToWrap) {
                 let contextText = ''
-                for (const pageSection of sections) {
-                    const content = pageSection.attributes?.text || ''
+                for (const pageSection of sources) {
+                    const content = pageSection?.text || ''
                     if (!content) {
                         continue
                     }

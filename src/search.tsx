@@ -13,6 +13,8 @@ import {
     Laptop,
     Moon,
     PauseIcon,
+    ScanSearchIcon,
+    SearchCheckIcon,
     SunMedium,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -48,13 +50,16 @@ import {
 } from './command'
 import {
     promptContext,
+    useDebouncedEffect,
     useMiniSearch,
     usePrevious,
     usePromptContext,
     useRouteChanged,
+    useThrowingFn,
 } from './hooks'
 import { DialogPosition, SearchDataEntry, SearchEndpointBody } from './types'
 import { basename } from './utils'
+import { SearchResult } from './hooks'
 
 function Variables({ children }) {
     const { primaryColor: primaryColorString } = usePromptContext()
@@ -119,6 +124,8 @@ export type SearchAndChatProps = {
     disableChat?: boolean
 }
 
+export type Mode = 'search' | 'chat' | 'semantic'
+
 export function SearchAndChat({
     className = '',
     namespace,
@@ -152,15 +159,15 @@ export function SearchAndChat({
         disableChat,
         initialMessage,
     }
-    const [mode, setMode] = useState<'search' | 'chat'>('search')
+    const [mode, setMode] = useState<Mode>('search')
     const [chatId, setChatId] = useState(() => v4())
     useRouteChanged(() => {
         setOpen(false)
         setMessages([])
     })
     const {
-        results,
-        isLoading: isSearching,
+        results: localResults,
+        isLoading: isMiniSearching,
         onQueryChange,
     } = useMiniSearch({
         getSearchData,
@@ -168,6 +175,32 @@ export function SearchAndChat({
         initialResults,
         isOpen,
     })
+
+    const [semanticResults, setSemanticResults] = useState<SearchResult[]>()
+
+    const { fn: semanticSearch, isLoading: isSemanticSearching } =
+        useThrowingFn({
+            async fn(value: string) {
+                if (!value) {
+                    return
+                }
+                const body: SearchEndpointBody = {
+                    type: 'semantic-search',
+                    namespace,
+                    query: value,
+                }
+                const res = await fetch(api, {
+                    body: JSON.stringify(body),
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                const json: SearchResult[] = await res.json()
+                // console.log({ json })
+                setSemanticResults(json)
+            },
+        })
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -238,6 +271,9 @@ export function SearchAndChat({
         if (mode === 'search') {
             onQueryChange(value)
         }
+        if (mode === 'semantic') {
+            setSemanticResults(undefined)
+        }
     }
 
     function reset() {
@@ -246,6 +282,7 @@ export function SearchAndChat({
         setMode('search')
         setValue('')
         setChatId(v4())
+        setSemanticResults(undefined)
         additionalMessages.current = []
         stop()
     }
@@ -277,10 +314,11 @@ export function SearchAndChat({
             content: q,
         })
     }
-    const isLoading = isSearching || isLoadingChat
+    const isLoading = isMiniSearching || isLoadingChat || isSemanticSearching
     const showChatIdeas = !messages.length && !value && !isLoadingChat
     const terms = [value]
     const sources = data?.map((x: any) => x.sources) || []
+    const results = mode === 'search' ? localResults : semanticResults
     const previousInitialMessage = usePrevious(initialMessage)
     useEffect(() => {
         if (initialMessage && previousInitialMessage !== initialMessage) {
@@ -288,7 +326,67 @@ export function SearchAndChat({
         }
     }, [initialMessage])
 
-    // console.log({ data, messages })
+    let placeholder = (() => {
+        if (mode === 'search') return 'Type a command or search...'
+        if (mode === 'chat') {
+            return 'Ask anything...'
+        }
+        if (mode === 'semantic') {
+            return 'Search using synonyms, concepts, or keywords...'
+        }
+        return ''
+    })()
+    let emptyState = (() => {
+        if (mode === 'search') return 'No results found.'
+
+        if (mode !== 'semantic') {
+            return ''
+        }
+        if (!value) {
+            return 'Search using synonyms, concepts, or keywords...'
+        }
+        if (!semanticResults) {
+            return ''
+        }
+        return 'No results found.'
+    })()
+
+    const inputButton = (() => {
+        if (mode === 'chat') {
+            return (
+                <button onClick={onEnter} className='shrink-0 flex'>
+                    {isLoadingChat ? (
+                        <PauseIcon className='w-5' />
+                    ) : (
+                        <CornerDownLeft className='w-5' />
+                    )}
+                </button>
+            )
+        }
+        if (mode === 'semantic') {
+            return (
+                <button
+                    onClick={() => {
+                        semanticSearch(input.current?.value)
+                    }}
+                    className='shrink-0 flex'
+                >
+                    {isSemanticSearching ? (
+                        <Spinner className='w-5' />
+                    ) : (
+                        <CornerDownLeft className='w-5' />
+                    )}
+                </button>
+            )
+        }
+        if (mode === 'search' && isMiniSearching) {
+            return <Spinner />
+        }
+        return null
+    })()
+
+    let hideAiButtons = disableChat || mode !== 'search'
+    const isSearchMode = mode === 'search' || mode === 'semantic'
     return (
         <promptContext.Provider value={context}>
             <Variables>
@@ -305,35 +403,20 @@ export function SearchAndChat({
                         ref={input}
                         autoFocus
                         value={value}
-                        endContent={
-                            mode === 'chat' ? (
-                                <button
-                                    onClick={onEnter}
-                                    className='shrink-0 flex'
-                                >
-                                    {isLoadingChat ? (
-                                        <PauseIcon className='w-5' />
-                                    ) : (
-                                        <CornerDownLeft className='w-5' />
-                                    )}
-                                </button>
-                            ) : (
-                                isSearching && <Spinner />
-                            )
-                        }
+                        endContent={inputButton}
                         isLoading={isLoading}
                         onEnter={() => {
                             if (mode === 'chat') {
                                 onEnter()
-                            } else {
-                                console.log('ignoring enter in non chat mode')
+                                return
                             }
+                            if (mode === 'semantic') {
+                                semanticSearch(input.current?.value)
+                                return
+                            }
+                            console.log('ignoring enter in non chat mode')
                         }}
-                        placeholder={
-                            mode === 'chat'
-                                ? 'Ask anything...'
-                                : 'Type a command or search...'
-                        }
+                        placeholder={placeholder}
                     />
                     {mode === 'chat' && (
                         <CommandList key='list'>
@@ -370,10 +453,10 @@ export function SearchAndChat({
                             )}
                         </CommandList>
                     )}
-                    {mode === 'search' && (
+                    {isSearchMode && (
                         <CommandList key='list'>
-                            <CommandEmpty>No results found.</CommandEmpty>
-                            {!disableChat && (
+                            <CommandEmpty>{emptyState}</CommandEmpty>
+                            {!hideAiButtons && (
                                 <CommandItem
                                     onSelect={() => {
                                         setMode('chat')
@@ -386,7 +469,22 @@ export function SearchAndChat({
                                     {value}
                                 </CommandItem>
                             )}
-                            {results.map((node, i) => {
+                            {!hideAiButtons && (
+                                <CommandItem
+                                    onSelect={() => {
+                                        setMode('semantic')
+                                        input.current?.focus()
+                                    }}
+                                >
+                                    <ScanSearchIcon className='w-5 mr-2' />
+                                    <span className='font-bold'>
+                                        Semantic Search
+                                    </span>
+                                    {value && ': '}
+                                    {value}
+                                </CommandItem>
+                            )}
+                            {results?.map((node, i) => {
                                 const sections = node.sections
                                 const href = slugToHref(node.slug)
 
@@ -438,7 +536,7 @@ export function SearchAndChat({
                                 )
                             })}
                             <CommandSeparator />
-                            <DarkModeCommands />
+                            {!hideAiButtons && <DarkModeCommands />}
                         </CommandList>
                     )}
                 </CommandDialog>
