@@ -98,6 +98,7 @@ export async function handleSearchAndChatRequest({
                 }
                 return source
             })
+            // console.log('sources', sources)
             if (isFirstMessage) {
                 data.append({
                     sources,
@@ -166,7 +167,7 @@ export async function handleSearchAndChatRequest({
             temperature: 0.5,
             stream: true,
         })
-        console.log(messages)
+        // console.log(messages)
 
         const stream = OpenAIStream(res, {
             experimental_streamData: true,

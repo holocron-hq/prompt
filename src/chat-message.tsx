@@ -108,7 +108,7 @@ export function Prose<T extends React.ElementType = 'div'>({
 }
 
 function Sources({ sources }: { sources: SearchDataEntry[] }) {
-    const { slugToHref } = usePromptContext()
+    const { slugToHref, setOpen } = usePromptContext()
     return (
         <div className='flex flex-col gap-2'>
             <div className=''>Using the following sources:</div>
@@ -117,6 +117,9 @@ function Sources({ sources }: { sources: SearchDataEntry[] }) {
                     return (
                         <Link
                             key={i}
+                            onClick={() => {
+                                setOpen(false)
+                            }}
                             href={slugToHref!(x.slug) || ''}
                             className='text-sm'
                         >
