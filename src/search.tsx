@@ -185,6 +185,7 @@ export function SearchAndChat({
                     return
                 }
                 const body: SearchEndpointBody = {
+                    ...bodyProp,
                     type: 'semantic-search',
                     namespace,
                     query: value,
@@ -197,6 +198,11 @@ export function SearchAndChat({
                     },
                 })
                 const json: SearchResult[] = await res.json()
+                if (!res.ok) {
+                    console.error(json)
+                    toast.error(`Semantic search failed: ${res.statusText}`)
+                    return
+                }
                 // console.log({ json })
                 setSemanticResults(json)
             },
