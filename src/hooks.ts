@@ -99,10 +99,10 @@ export function useMiniSearch({
             .search(query, {
                 prefix: true,
                 fuzzy: 0.15,
-
+                
                 boost: {
                     text: 1,
-                    name: 2,
+                    name: 3,
                 },
                 weights: {
                     fuzzy: 0.5,
