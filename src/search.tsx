@@ -127,6 +127,32 @@ export type SearchAndChatProps = {
 export type Mode = 'search' | 'chat' | 'semantic'
 
 export function SearchAndChat({
+    isOpen,
+    setOpen,
+    ...rest
+}: SearchAndChatProps) {
+    useEffect(() => {
+        const down = (e: KeyboardEvent) => {
+            if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault()
+                setOpen((open) => !open)
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault()
+                setOpen(false)
+            }
+        }
+
+        document.addEventListener('keydown', down)
+        return () => document.removeEventListener('keydown', down)
+    }, [])
+    if (!isOpen) {
+        return null
+    }
+    return <SearchAndChatInner {...rest} isOpen={isOpen} setOpen={setOpen} />
+}
+
+export function SearchAndChatInner({
     className = '',
     namespace,
     getSearchData,
@@ -208,21 +234,6 @@ export function SearchAndChat({
             },
         })
 
-    useEffect(() => {
-        const down = (e: KeyboardEvent) => {
-            if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault()
-                setOpen((open) => !open)
-            }
-            if (e.key === 'Escape') {
-                e.preventDefault()
-                setOpen(false)
-            }
-        }
-
-        document.addEventListener('keydown', down)
-        return () => document.removeEventListener('keydown', down)
-    }, [])
     const additionalMessages = useRef<CreateMessage[]>([])
 
     const input = useRef<HTMLInputElement>(null)
@@ -393,6 +404,7 @@ export function SearchAndChat({
 
     let hideAiButtons = disableChat || mode !== 'search'
     const isSearchMode = mode === 'search' || mode === 'semantic'
+
     return (
         <promptContext.Provider value={context}>
             <Variables>
