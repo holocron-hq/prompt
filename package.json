@@ -20,7 +20,7 @@
     "author": "Tommaso De Rossi, morse <beats.by.morse@gmail.com>",
     "license": "",
     "dependencies": {
-        "@headlessui/react": "1.7.17",
+        "@headlessui/react": "1.7.18",
         "ai": "^2.2.27",
         "clsx": "^2.0.0",
         "cmdk": "^0.2.0",
@@ -45,7 +45,7 @@
         "react-dom": "*"
     },
     "devDependencies": {
-        "@types/node": "^20.10.4",
+        "@types/node": "^20.11.13",
         "@types/react": "18.2.48",
         "next": "^14.0.4",
         "react": "^18.2.0",
