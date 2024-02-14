@@ -18,7 +18,12 @@ import OpenAI from 'openai'
 import { TurboPufferApiClientV1 } from 'turbopuffer-sdk/src'
 import { NextResponse } from 'next/server'
 
-async function semanticSearch({ query, namespace, env }) {
+async function semanticSearch({
+    query,
+    namespace,
+    env,
+    onError = (e) => console.error(e),
+}) {
     const openai = new OpenAI({
         apiKey: env.OPENAI_KEY,
     })
@@ -36,12 +41,17 @@ async function semanticSearch({ query, namespace, env }) {
         'text',
         'type',
     ]
-    const sections = await puffer.queryVectors({
-        namespace,
-        distance_metric: 'cosine_distance',
-        include_attributes,
-        vector: embedding.data[0].embedding,
-    })
+    const sections = await puffer
+        .queryVectors({
+            namespace,
+            distance_metric: 'cosine_distance',
+            include_attributes,
+            vector: embedding.data[0].embedding,
+        })
+        .catch((e) => {
+            onError(e)
+            return []
+        })
     console.log(`found ${sections.length} sections`)
 
     const sources = sections.map((x) => {
@@ -62,6 +72,7 @@ export async function handleSearchAndChatRequest({
     json,
     model = 'gpt-3.5-turbo-1106',
     updateMessages,
+    onError = (e) => console.error(e),
 }: {
     json: SearchEndpointBody
     updateMessages?: (x: {
@@ -72,6 +83,7 @@ export async function handleSearchAndChatRequest({
         OPENAI_KEY: string
         TURBOPUFFER_KEY: string
     }
+    onError?: (e: any) => void
     model?: string
 }) {
     if (json.type === 'semantic-search') {
@@ -79,6 +91,7 @@ export async function handleSearchAndChatRequest({
             env,
             query: json.query,
             namespace: json.namespace,
+            onError,
         })
         return NextResponse.json(sources)
     }
@@ -111,6 +124,7 @@ export async function handleSearchAndChatRequest({
                 env,
                 query: firstMessage,
                 namespace,
+                onError,
             })
 
             // console.log('sources', sources)
