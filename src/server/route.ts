@@ -46,6 +46,7 @@ async function semanticSearch({
             namespace,
             distance_metric: 'cosine_distance',
             include_attributes,
+            top_k: 20,
             vector: embedding.data[0].embedding,
         })
         .catch((e) => {
