@@ -122,7 +122,22 @@ export type SearchAndChatProps = {
     initialMessage?: string
     chatbotName?: string
     disableChat?: boolean
+
+    uiOverrides: Partial<Record<keyof typeof defaultUiOverrides, string>>
 }
+
+const defaultUiOverrides = {
+    searchPlaceholder: 'Type a command or search...',
+    askAI: 'Ask AI',
+    semanticSearch: 'Semantic Search',
+    semanticSearchPlaceholder:
+        'Search using synonyms, concepts, or keywords...',
+    askAiPlaceholder: 'Ask anything...',
+    noResultsFound: 'No results found',
+    lightMode: 'Light',
+    darkMode: 'Dark',
+    systemMode: 'System',
+} as const
 
 export type Mode = 'search' | 'chat' | 'semantic'
 
@@ -168,6 +183,7 @@ export function SearchAndChatInner({
     primaryColor = colors.blue[500],
     disableChat,
     body: bodyProp,
+    uiOverrides,
 }: SearchAndChatProps) {
     const context = {
         body: bodyProp,
@@ -184,6 +200,7 @@ export function SearchAndChatInner({
         chatbotName,
         disableChat,
         initialMessage,
+        uiOverrides: { ...defaultUiOverrides, ...uiOverrides },
     }
     const [mode, setMode] = useState<Mode>('search')
     const [chatId, setChatId] = useState(() => v4())
@@ -344,28 +361,30 @@ export function SearchAndChatInner({
     }, [initialMessage])
 
     let placeholder = (() => {
-        if (mode === 'search') return 'Type a command or search...'
+        if (mode === 'search') return uiOverrides.searchPlaceholder
         if (mode === 'chat') {
-            return 'Ask anything...'
+            return uiOverrides.askAiPlaceholder
         }
         if (mode === 'semantic') {
-            return 'Search using synonyms, concepts, or keywords...'
+            return uiOverrides.semanticSearchPlaceholder
         }
         return ''
     })()
     let emptyState = (() => {
-        if (mode === 'search') return 'No results found.'
+        if (mode === 'search') {
+            return uiOverrides.noResultsFound
+        }
 
         if (mode !== 'semantic') {
             return ''
         }
         if (!value) {
-            return 'Search using synonyms, concepts, or keywords...'
+            return uiOverrides.semanticSearchPlaceholder
         }
         if (!semanticResults) {
             return ''
         }
-        return 'No results found.'
+        return uiOverrides.noResultsFound
     })()
 
     const inputButton = (() => {
@@ -482,7 +501,9 @@ export function SearchAndChatInner({
                                     }}
                                 >
                                     <StarsIcon className='w-5 mr-2' />
-                                    <span className='font-bold'>Ask AI</span>
+                                    <span className='font-bold'>
+                                        {uiOverrides.askAI}
+                                    </span>
                                     {value && ': '}
                                     {value}
                                 </CommandItem>
@@ -496,7 +517,7 @@ export function SearchAndChatInner({
                                 >
                                     <ScanSearchIcon className='w-5 mr-2' />
                                     <span className='font-bold'>
-                                        Semantic Search
+                                        {uiOverrides.semanticSearch}
                                     </span>
                                     {value && ': '}
                                     {value}
@@ -810,7 +831,7 @@ export const SearchedText = memo<{ terms; textToHighlight: string }>(
 )
 
 export function DarkModeCommands({}) {
-    const { setOpen } = usePromptContext()
+    const { setOpen, uiOverrides } = usePromptContext()
     const { setTheme } = useTheme()
 
     const runCommand = useCallback((command: () => unknown) => {
@@ -821,15 +842,15 @@ export function DarkModeCommands({}) {
         <CommandGroup heading='Theme'>
             <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
                 <SunMedium className='mr-2 w-5' />
-                Light
+                {uiOverrides.lightMode}
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
                 <Moon className='mr-2 w-5' />
-                Dark
+                {uiOverrides.darkMode}
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
                 <Laptop className='mr-2 w-5' />
-                System
+                {uiOverrides.systemMode}
             </CommandItem>
         </CommandGroup>
     )
