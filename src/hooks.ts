@@ -1,6 +1,6 @@
 import MiniSearch from 'minisearch'
 import { usePathname } from 'next/navigation'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import useSwr from 'swr'
 
 import { SearchAndChatProps } from './search'
@@ -99,7 +99,7 @@ export function useMiniSearch({
             .search(query, {
                 prefix: true,
                 fuzzy: 0.15,
-                
+
                 boost: {
                     text: 1,
                     name: 3,
@@ -243,4 +243,25 @@ export function useDebouncedEffect(
         const handler = setTimeout(() => effect(), delay)
         return () => clearTimeout(handler)
     }, deps)
+}
+
+export function useEvent<T extends Function>(handler: T): T {
+    // Store the handler in a ref so it can be stable across re-renders
+    const handlerRef = useRef(handler)
+
+    // Update the ref each render so it always has the latest handler
+    useEffect(() => {
+        handlerRef.current = handler
+    }, [handler])
+
+    // Return a stable function that calls the latest handler
+    return useCallback(
+        ((...args) => {
+            const currentHandler = handlerRef.current
+            if (currentHandler) {
+                currentHandler(...args)
+            }
+        }) as any,
+        [],
+    ) // Dependencies array is empty to ensure stability
 }

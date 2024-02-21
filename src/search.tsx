@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { memo, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 import { CommandGroup } from './command'
 
 import { toast } from 'react-hot-toast'
@@ -56,6 +57,7 @@ import {
     usePromptContext,
     useRouteChanged,
     useThrowingFn,
+    useEvent,
 } from './hooks'
 import { DialogPosition, SearchDataEntry, SearchEndpointBody } from './types'
 import { basename } from './utils'
@@ -329,25 +331,32 @@ export function SearchAndChatInner({
         }
     }, [isOpen])
 
-    const onEnter = async () => {
-        if (isLoadingChat) {
-            console.log('stopping generation')
-            stop()
+    const onEnter = useEvent(async () => {
+        // console.log('onEnter', mode)
+        if (mode === 'semantic') {
+            semanticSearch(input.current?.value)
             return
         }
-        const q = input.current?.value?.trim()
-        if (!q) return
+        if (mode === 'chat') {
+            if (isLoadingChat) {
+                console.log('stopping generation')
+                stop()
+                return
+            }
+            const q = input.current?.value?.trim()
+            if (!q) return
 
-        setValue('')
+            setValue('')
 
-        const messageId = v4()
-        console.log(`sending message`, q)
-        append({
-            role: 'user',
-            id: messageId,
-            content: q,
-        })
-    }
+            const messageId = v4()
+            console.log(`sending message`, q)
+            append({
+                role: 'user',
+                id: messageId,
+                content: q,
+            })
+        }
+    })
     const isLoading = isMiniSearching || isLoadingChat || isSemanticSearching
     const showChatIdeas = !messages.length && !value && !isLoadingChat
     const terms = [value]
@@ -442,17 +451,7 @@ export function SearchAndChatInner({
                         value={value}
                         endContent={inputButton}
                         isLoading={isLoading}
-                        onEnter={() => {
-                            if (mode === 'chat') {
-                                onEnter()
-                                return
-                            }
-                            if (mode === 'semantic') {
-                                semanticSearch(input.current?.value)
-                                return
-                            }
-                            console.log('ignoring enter in non chat mode')
-                        }}
+                        onEnter={onEnter}
                         placeholder={placeholder}
                     />
                     {mode === 'chat' && (
@@ -494,34 +493,60 @@ export function SearchAndChatInner({
                         <CommandList key='list'>
                             <CommandEmpty>{emptyState}</CommandEmpty>
                             {!hideAiButtons && (
-                                <CommandItem
-                                    onSelect={() => {
-                                        setMode('chat')
+                                <div
+                                    onClick={() => {
+                                        flushSync(() => {
+                                            setMode('chat')
+                                        })
                                         input.current?.focus()
+                                        onEnter()
                                     }}
+                                    className=''
                                 >
-                                    <StarsIcon className='w-5 mr-2' />
-                                    <span className='font-bold'>
-                                        {uiOverrides.askAI}
-                                    </span>
-                                    {value && ': '}
-                                    {value}
-                                </CommandItem>
+                                    <CommandItem
+                                        onSelect={() => {
+                                            flushSync(() => {
+                                                setMode('chat')
+                                            })
+                                            input.current?.focus()
+                                        }}
+                                    >
+                                        <StarsIcon className='w-5 mr-2' />
+                                        <span className='font-bold'>
+                                            {uiOverrides.askAI}
+                                        </span>
+                                        {value && ': '}
+                                        {value}
+                                    </CommandItem>
+                                </div>
                             )}
                             {!hideAiButtons && (
-                                <CommandItem
-                                    onSelect={() => {
-                                        setMode('semantic')
+                                <div
+                                    onClick={() => {
+                                        flushSync(() => {
+                                            setMode('semantic')
+                                        })
                                         input.current?.focus()
+                                        onEnter()
                                     }}
+                                    className=''
                                 >
-                                    <ScanSearchIcon className='w-5 mr-2' />
-                                    <span className='font-bold'>
-                                        {uiOverrides.semanticSearch}
-                                    </span>
-                                    {value && ': '}
-                                    {value}
-                                </CommandItem>
+                                    <CommandItem
+                                        onSelect={() => {
+                                            flushSync(() => {
+                                                setMode('semantic')
+                                            })
+                                            input.current?.focus()
+                                        }}
+                                    >
+                                        <ScanSearchIcon className='w-5 mr-2' />
+                                        <span className='font-bold'>
+                                            {uiOverrides.semanticSearch}
+                                        </span>
+                                        {value && ': '}
+                                        {value}
+                                    </CommandItem>
+                                </div>
                             )}
                             {results?.map((node, i) => {
                                 const sections = node.sections
