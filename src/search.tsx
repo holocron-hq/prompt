@@ -187,6 +187,7 @@ export function SearchAndChatInner({
     body: bodyProp,
     uiOverrides,
 }: SearchAndChatProps) {
+    uiOverrides = { ...defaultUiOverrides, ...uiOverrides }
     const context = {
         body: bodyProp,
         getSearchData,
@@ -202,7 +203,7 @@ export function SearchAndChatInner({
         chatbotName,
         disableChat,
         initialMessage,
-        uiOverrides: { ...defaultUiOverrides, ...uiOverrides },
+        uiOverrides,
     }
     const [mode, setMode] = useState<Mode>('search')
     const [chatId, setChatId] = useState(() => v4())
