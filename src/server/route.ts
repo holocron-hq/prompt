@@ -143,7 +143,7 @@ export async function handleSearchAndChatRequest({
                 {
                     content: oneLine`${firstPart}If you are unsure and the answer
                     is not explicitly written in the documentation, say
-                    "Sorry, I don't know how to help with that." Be super short and concise.`,
+                    "Sorry, I didn't find enough information to help you." Be super short and concise. If the question if not in english respond in the same language.`,
                     role: 'system',
                     // id: 'system-message',
                 },
