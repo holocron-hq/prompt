@@ -15,7 +15,7 @@ import { oneLine, stripIndent } from 'common-tags'
 
 import OpenAI from 'openai'
 
-import { TurboPufferApiClientV1 } from 'turbopuffer-sdk/src'
+import { TurboPufferApiClientV1 } from 'turbopuffer-sdk'
 import { NextResponse } from 'next/server'
 
 async function semanticSearch({
