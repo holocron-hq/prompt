@@ -1,6 +1,6 @@
 {
     "name": "@holocron.so/prompt",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "private": true,
     "description": "",
     "main": "dist/index.js",
@@ -36,7 +36,7 @@
         "safe-mdx": "*",
         "swr": "^2.2.4",
         "tailwindcss": "^3.4.1",
-        "turbopuffer-sdk": "^0.0.2",
+        "turbopuffer-sdk": "^0.1.1",
         "uuid": "^8.3.2"
     },
     "peerDependencies": {
