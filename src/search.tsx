@@ -125,7 +125,7 @@ export type SearchAndChatProps = {
     chatbotName?: string
     disableChat?: boolean
 
-    uiOverrides: Partial<Record<keyof typeof defaultUiOverrides, string>>
+    uiOverrides?: Partial<Record<keyof typeof defaultUiOverrides, string>>
 }
 
 const defaultUiOverrides = {
