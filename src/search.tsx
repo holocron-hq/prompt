@@ -868,15 +868,15 @@ export function DarkModeCommands({}) {
         <CommandGroup heading='Theme'>
             <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
                 <SunMedium className='mr-2 w-5' />
-                {uiOverrides.lightMode}
+                {uiOverrides!.lightMode}
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
                 <Moon className='mr-2 w-5' />
-                {uiOverrides.darkMode}
+                {uiOverrides!.darkMode}
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
                 <Laptop className='mr-2 w-5' />
-                {uiOverrides.systemMode}
+                {uiOverrides!.systemMode}
             </CommandItem>
         </CommandGroup>
     )
