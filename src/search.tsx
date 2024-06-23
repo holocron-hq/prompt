@@ -18,7 +18,7 @@ import {
     SunMedium,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useLayoutEffect } from 'react'
 import { flushSync } from 'react-dom'
 import { CommandGroup } from './command'
 
@@ -430,10 +430,20 @@ export function SearchAndChatInner({
         }
         return null
     })()
+    const scrollContainer = useRef<HTMLDivElement>(null)
 
     let hideAiButtons = disableChat || mode !== 'search'
     const isSearchMode = mode === 'search' || mode === 'semantic'
 
+    useLayoutEffect(() => {
+        // setTimeout needed because i need to wait before the scroll container is rendered by React. i could also use flushSync on results
+        setTimeout(() => {
+            if (!scrollContainer.current) {
+                return
+            }
+            scrollContainer.current.scrollTop = 0
+        })
+    }, [results, hideAiButtons])
     return (
         <promptContext.Provider value={context}>
             <Variables>
@@ -456,7 +466,7 @@ export function SearchAndChatInner({
                         placeholder={placeholder}
                     />
                     {mode === 'chat' && (
-                        <CommandList key='list'>
+                        <CommandList ref={scrollContainer} key='list'>
                             {showChatIdeas ? (
                                 getMessageIdeas({
                                     additionalMessages,
@@ -491,7 +501,7 @@ export function SearchAndChatInner({
                         </CommandList>
                     )}
                     {isSearchMode && (
-                        <CommandList key='list'>
+                        <CommandList ref={scrollContainer} key='list'>
                             <CommandEmpty>{emptyState}</CommandEmpty>
                             {!hideAiButtons && (
                                 <div

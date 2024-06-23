@@ -61,7 +61,7 @@ const CommandDialog = ({
                     loop
                     className={clsx(
                         className,
-                        'fixed rounded-lg  ring-[--accent] grid w-full gap-4 bg-[--background] shadow-lg ',
+                        'fixed rounded-lg  ring-[--accent] grid w-full bg-[--background] shadow-lg ',
                         !position &&
                             'max-w-[90%] lg:max-w-3xl left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]',
                             'focus:outline-none focus:ring-0'
