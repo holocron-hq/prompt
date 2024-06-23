@@ -44,7 +44,7 @@ const CommandDialog = ({
                 open={isOpen}
                 onClose={onOpenChange}
                 className={'holocron-prompt-scope z-20 '}
-                style={position}
+                
             >
                 {isOpen && (
                     <div
@@ -59,6 +59,7 @@ const CommandDialog = ({
                     onChange={onChange}
                     shouldFilter={false}
                     loop
+                    style={position}
                     className={clsx(
                         className,
                         'fixed rounded-lg  ring-[--accent] grid w-full bg-[--background] shadow-lg ',
