@@ -38,8 +38,6 @@ const CommandDialog = ({
     position?: DialogPosition
     onOpenChange: any
 }) => {
-    const divRef = React.useRef<any>()
-
     return (
         <>
             {isOpen && (
@@ -48,7 +46,6 @@ const CommandDialog = ({
                     className='fixed z-10 inset-0 bg-gray-900/60 backdrop-blur data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'
                 ></div>
             )}
-            <div ref={divRef} />
 
             <Dialog
                 open={isOpen}
