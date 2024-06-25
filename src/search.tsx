@@ -565,7 +565,7 @@ export function SearchAndChatInner({
 
                                 const pageNode = (
                                     <SearchResultItem
-                                        key={node.slug}
+                                        key={'page' + node.slug}
                                         title={node.name || basename(node.slug)}
                                         type={node.type}
                                         terms={terms}
@@ -580,7 +580,7 @@ export function SearchAndChatInner({
                                 return (
                                     <div
                                         className='flex flex-col'
-                                        key={node.slug}
+                                        key={'sections' + node.slug}
                                     >
                                         {pageNode}
                                         <div className=''>
@@ -593,7 +593,7 @@ export function SearchAndChatInner({
                                                     <SearchResultItem
                                                         setOpen={setOpen}
                                                         pl
-                                                        key={node.slug}
+                                                        key={'section' + node.slug}
                                                         title={
                                                             node.name ||
                                                             basename(node.slug)
