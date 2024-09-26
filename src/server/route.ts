@@ -42,7 +42,7 @@ async function semanticSearch({
             vector: embedding.data[0].embedding,
             includeMetadata: true,
             includeVectors: false,
-            includeData: true,
+            includeData: false,
             filter: `namespace = '${namespace}'`,
 
             // namespace,
