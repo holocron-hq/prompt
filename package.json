@@ -21,6 +21,7 @@
     "license": "",
     "dependencies": {
         "@headlessui/react": "1.7.18",
+        "@upstash/vector": "^1.1.6",
         "ai": "^3.1.14",
         "clsx": "^2.0.0",
         "cmdk": "^0.2.0",
@@ -36,7 +37,6 @@
         "safe-mdx": "*",
         "swr": "^2.2.4",
         "tailwindcss": "^3.4.4",
-        "turbopuffer-sdk": "^0.1.1",
         "uuid": "^8.3.2"
     },
     "peerDependencies": {

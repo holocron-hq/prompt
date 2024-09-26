@@ -12,51 +12,58 @@ import {
 } from 'ai'
 import { CreateMessage } from 'ai/'
 import { oneLine, stripIndent } from 'common-tags'
+import { Index } from '@upstash/vector'
 
 import OpenAI from 'openai'
 
-import { TurboPufferApiClientV1 } from 'turbopuffer-sdk'
 import { NextResponse } from 'next/server'
 
 async function semanticSearch({
     query,
     namespace,
-    env,
+    openai,
+    index,
     onError = (e) => console.error(e),
+}: {
+    query: string
+    namespace: string
+    openai: OpenAI
+    index: Index
+    onError?: (e: Error) => void
 }) {
-    const openai = new OpenAI({
-        apiKey: env.OPENAI_KEY,
-    })
-    const puffer = new TurboPufferApiClientV1<SearchDataEntry>({
-        token: env.TURBOPUFFER_KEY,
-    })
-
     const embedding = await openai.embeddings.create({
         input: [query],
         model: 'text-embedding-ada-002',
     })
-    const include_attributes: Array<keyof SearchDataEntry> = [
-        'slug',
-        'name',
-        'text',
-        'type',
-    ]
-    const sections = await puffer
-        .queryVectors({
-            namespace,
-            distance_metric: 'cosine_distance',
-            include_attributes,
-            top_k: 20,
+
+    const sections = await index
+        .query({
+            topK: 20,
             vector: embedding.data[0].embedding,
+            includeMetadata: true,
+            includeVectors: false,
+            includeData: true,
+            filter: `namespace = '${namespace}'`,
+
+            // namespace,
+            // distance_metric: 'cosine_distance',
+            // include_attributes,
+            // top_k: 20,
+            // vector: embedding.data[0].embedding,
         })
         .catch((e) => {
             onError(e)
-            return []
+            return
         })
-    console.log(`found ${sections.length} sections`)
+    if (!sections) {
+        return []
+    }
+    console.log(`found ${sections?.length} sections`)
 
-    const sources = sections.map((x) => {
-        const { slug, name, text, type } = x.attributes || {}
+    const sources = sections?.map((x) => {
+        const { slug, text, name, type } =
+            (x.metadata as any as SearchDataEntry) || {}
+
         const source: Partial<SearchDataEntry> = {
             slug,
             name,
@@ -65,11 +72,12 @@ async function semanticSearch({
         }
         return source
     })
-    return sources
+    return sources || []
 }
 
 export async function handleSearchAndChatRequest({
-    env,
+    index,
+    openai,
     json,
     model = 'gpt-3.5-turbo-1106',
     updateMessages,
@@ -80,25 +88,23 @@ export async function handleSearchAndChatRequest({
         messages: CreateMessage[]
         sources: Partial<SearchDataEntry>[]
     }) => void
-    env: {
-        OPENAI_KEY: string
-        TURBOPUFFER_KEY: string
-    }
+
+    index: Index
+    openai: OpenAI
     onError?: (e: any) => void
     model?: string
 }) {
     if (json.type === 'semantic-search') {
         const sources = await semanticSearch({
-            env,
+            index,
+            openai,
             query: json.query,
             namespace: json.namespace,
             onError,
         })
         return NextResponse.json(sources)
     }
-    const openai = new OpenAI({
-        apiKey: env.OPENAI_KEY,
-    })
+
     try {
         let { messages, namespace, additionalMessages = [] } = json
         const data = new experimental_StreamData()
@@ -122,11 +128,13 @@ export async function handleSearchAndChatRequest({
             const firstMessage = messages.filter((x) => x.role === 'user')[0]
                 .content
             const sources = await semanticSearch({
-                env,
+                index,
+                openai,
                 query: firstMessage,
                 namespace,
                 onError,
             })
+            
 
             // console.log('sources', sources)
             if (isFirstMessage) {
@@ -134,7 +142,7 @@ export async function handleSearchAndChatRequest({
                     sources,
                 } as any)
             }
-            const firstPart = sources.length
+            const firstPart = sources?.length
                 ? oneLine`Given the following sections from the
             documentation, answer the question using only that information,
             outputted in markdown format (but not inside a code snippet). `

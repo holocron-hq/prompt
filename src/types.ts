@@ -4,6 +4,7 @@ export interface SearchDataEntry {
     slug: string
     text: string
     name: string
+    namespace: string
     parent?: number
     type: 'page' | 'h1' | 'h2' | 'h3'
 }
