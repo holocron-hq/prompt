@@ -4,7 +4,6 @@ import { Tiktoken } from 'js-tiktoken/lite'
 // @ts-ignore
 import cl100k_base from 'js-tiktoken/ranks/cl100k_base'
 const tokenizer = new Tiktoken(cl100k_base)
-
 import {
     OpenAIStream,
     StreamingTextResponse,
