@@ -28,7 +28,7 @@
         "common-tags": "^1.8.2",
         "highlight-words-core": "^1.2.2",
         "js-tiktoken": "1.0.7",
-        "lucide-react": "^0.292.0",
+        "lucide-react": "^0.479.0",
         "minisearch": "^6.1.0",
         "next-themes": "^0.3.0",
         "openai": "^4.20.1",
@@ -47,7 +47,7 @@
     "devDependencies": {
         "@types/node": "^20.11.13",
         "@types/react": "18.2.48",
-        "next": "^15.1.6",
+        "next": "^15.2.1",
         "react": "^19.0.0",
         "react-dom": "^19.0.0"
     }
