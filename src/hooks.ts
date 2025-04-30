@@ -182,7 +182,7 @@ export function useMiniSearch({
 }
 
 export function usePrevious(value) {
-    const ref = useRef()
+    const ref = useRef(undefined)
     useEffect(() => {
         ref.current = value
     }, [value])

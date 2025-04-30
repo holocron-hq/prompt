@@ -5,18 +5,15 @@ import { Tiktoken } from 'js-tiktoken/lite'
 import cl100k_base from 'js-tiktoken/ranks/cl100k_base'
 const tokenizer = new Tiktoken(cl100k_base)
 
-import {
-    OpenAIStream,
-    StreamingTextResponse,
-    experimental_StreamData,
-} from 'ai'
+import { streamText, pipeDataStreamToResponse } from 'ai'
 import { CreateMessage } from 'ai/'
 import { oneLine, stripIndent } from 'common-tags'
 import { Index } from '@upstash/vector'
 
-import OpenAI from 'openai'
+import { openai as createOpenAI } from '@ai-sdk/openai'
 
 import { NextResponse } from 'next/server'
+import OpenAI from 'openai'
 
 async function semanticSearch({
     query,
@@ -107,7 +104,6 @@ export async function handleSearchAndChatRequest({
 
     try {
         let { messages, namespace, additionalMessages = [] } = json
-        const data = new experimental_StreamData()
 
         // https://platform.openai.com/docs/models/gpt-3-5
         // https://openai.com/pricing
@@ -134,13 +130,10 @@ export async function handleSearchAndChatRequest({
                 namespace,
                 onError,
             })
-            
 
             // console.log('sources', sources)
             if (isFirstMessage) {
-                data.append({
-                    sources,
-                } as any)
+                await updateMessages?.({ messages, sources })
             }
             const firstPart = sources?.length
                 ? oneLine`Given the following sections from the
@@ -200,23 +193,13 @@ export async function handleSearchAndChatRequest({
 
         // console.log('messages', JSON.stringify(messages, null, 2))
 
-        const res = await openai.chat.completions.create({
-            model,
-            messages: messages.filter(Boolean) as any,
+        const result = await streamText({
+            model: createOpenAI(model),
+            messages,
             temperature: 0.5,
-            stream: true,
-        })
-        // console.log(messages)
-
-        const stream = OpenAIStream(res, {
-            experimental_streamData: true,
-
-            onFinal(completion) {
-                data.close()
-            },
         })
 
-        return new StreamingTextResponse(stream, {}, data)
+        return result.toDataStreamResponse()
     } catch (e: any) {
         if (e.name === 'AbortError') {
             return new Response(null, { status: 204 })

@@ -34,7 +34,7 @@ import {
     StarsIcon,
 } from 'lucide-react'
 
-import { CreateMessage, useChat } from 'ai/react'
+import { CreateMessage, useChat } from '@ai-sdk/react'
 
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
@@ -593,7 +593,10 @@ export function SearchAndChatInner({
                                                     <SearchResultItem
                                                         setOpen={setOpen}
                                                         pl
-                                                        key={'section' + node.slug}
+                                                        key={
+                                                            'section' +
+                                                            node.slug
+                                                        }
                                                         title={
                                                             node.name ||
                                                             basename(node.slug)
