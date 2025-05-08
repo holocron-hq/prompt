@@ -2,7 +2,7 @@ import { Message } from 'ai'
 import Link from 'next/link'
 import { clsx } from 'clsx'
 
-import { SafeMdxRenderer } from 'safe-mdx'
+import { SafeMdxRenderer } from 'safe-mdx/src/safe-mdx'
 import { SearchDataEntry } from './types'
 import { usePromptContext } from './hooks'
 import { basename } from './utils'
