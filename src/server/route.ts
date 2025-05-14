@@ -76,7 +76,7 @@ export async function handleSearchAndChatRequest({
     index,
     openai,
     json,
-    model = 'gpt-3.5-turbo-1106',
+    model = 'gpt-4o',
     updateMessages,
     onError = (e) => console.error(e),
 }: {
