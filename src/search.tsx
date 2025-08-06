@@ -1,7 +1,7 @@
 'use client'
 import { colord } from 'colord'
-
 import colors from 'tailwindcss/colors'
+
 
 import { findAll } from 'highlight-words-core'
 import Link from 'next/link'

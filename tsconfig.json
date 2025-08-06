@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
         "target": "ES2017",
-        "module": "commonjs",
+        "module": "ESNext",
         // "allowJs": true,
-        "moduleResolution": "Node",
+        "moduleResolution": "bundler",
         "lib": ["es2017", "es2022", "es7", "es6", "dom"],
         "declaration": true,
         "declarationMap": true,
