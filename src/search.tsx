@@ -1,5 +1,5 @@
 'use client'
-import { colord } from 'colord'
+import { parse, formatRgb, filterBrightness, filterSaturate, wcagLuminance } from 'culori'
 import colors from 'tailwindcss/colors'
 
 
@@ -65,11 +65,10 @@ import { SearchResult } from './hooks'
 
 function Variables({ children }) {
     const { primaryColor: primaryColorString } = usePromptContext()
-    const primaryColor = colord(primaryColorString!)
-
-    const primaryDark = primaryColor
-        .lighten(0.7 - primaryColor.brightness())
-        .saturate(0.8)
+    const primaryColor = parse(primaryColorString!)
+    const brightness = wcagLuminance(primaryColor)
+    const brightenFactor = brightness < 0.7 ? (0.7 - brightness) / 0.7 : 0
+    const primaryDark = filterSaturate(1.8, 'lch')(filterBrightness(1 + brightenFactor, 'lrgb')(primaryColor))
 
     return (
         <div className='holocron-prompt-scope'>
@@ -79,26 +78,16 @@ function Variables({ children }) {
                 .holocron-prompt-scope {
                     --accent: ${colors.neutral[100]};
                     --background: ${colors.neutral[50]};
-                    --primary-foreground: ${primaryColor
-                        .lighten(0.4 - primaryColor.brightness())
-                        .toRgbString()};
-                    --primary-color: ${primaryColor
-                        .lighten(0.5 - primaryColor.brightness())
-                        .toRgbString()};
-                    --primary-highlight: ${primaryColor
-                        .alpha(0.2)
-                        .toRgbString()};
+                    --primary-foreground: ${formatRgb(filterBrightness(1 + Math.max(0, 0.4 - brightness), 'lrgb')(primaryColor))};
+                    --primary-color: ${formatRgb(filterBrightness(1 + Math.max(0, 0.5 - brightness), 'lrgb')(primaryColor))};
+                    --primary-highlight: ${formatRgb({ ...primaryColor, alpha: 0.2 })};
                 }
                 .dark .holocron-prompt-scope {
                     --accent: ${colors.neutral[700]};
                     --background: ${colors.neutral[800]};
-                    --primary-foreground: ${primaryDark
-                        .lighten(0.8 - primaryDark.brightness())
-                        .toRgbString()};
-                    --primary-color: ${primaryDark.toRgbString()};
-                    --primary-highlight: ${primaryDark
-                        .alpha(0.1)
-                        .toRgbString()};
+                    --primary-foreground: ${formatRgb(filterBrightness(1 + Math.max(0, 0.8 - wcagLuminance(primaryDark)), 'lrgb')(primaryDark))};
+                    --primary-color: ${formatRgb(primaryDark)};
+                    --primary-highlight: ${formatRgb({ ...primaryDark, alpha: 0.1 })};
                 }
                 `}
             </style>
