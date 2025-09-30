@@ -1,6 +1,5 @@
 'use client'
 import clsx from 'clsx'
-import colors from 'tailwindcss/colors'
 import { Dialog, Transition } from '@headlessui/react'
 
 import { Command as CommandPrimitive } from 'cmdk'

@@ -172,7 +172,7 @@ export function useMiniSearch({
                 }
             },
         )
-        results = deduplicateByKeyFn(results, (x) => x.slug)
+        results = deduplicateByKeyFn(results || [], (x) => x.slug)
         // console.log('results', results)
         setResults(results)
         return
