@@ -1,4 +1,4 @@
-import { CreateMessage } from 'ai'
+import { CoreMessage } from 'ai'
 
 export interface SearchDataEntry {
     slug: string
@@ -12,9 +12,9 @@ export interface SearchDataEntry {
 export type SearchEndpointBody =
     | {
           type: 'chat'
-          messages: CreateMessage[]
+          messages: CoreMessage[]
           namespace: string
-          additionalMessages?: CreateMessage[]
+          additionalMessages?: CoreMessage[]
       }
     | {
           type: 'semantic-search'
