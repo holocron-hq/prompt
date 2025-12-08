@@ -12,6 +12,16 @@ import {
     UserIcon,
 } from 'lucide-react'
 
+function getTextContent(content: ChatMessage['content']): string {
+    if (typeof content === 'string') {
+        return content
+    }
+    return content
+        .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+        .map((part) => part.text)
+        .join('\n')
+}
+
 export interface ChatMessageProps {
     message: ChatMessage
     className?: string
@@ -44,7 +54,7 @@ export function ChatMessageComponent({
                 <div className='font-bold'>{name}</div>
                 <Prose className={clsx('', className)}>
                     <SafeMdxRenderer
-                        markdown={message.content}
+                        markdown={getTextContent(message.content)}
                         // mdast={mdast}
                         components={{
                             p({ children }) {

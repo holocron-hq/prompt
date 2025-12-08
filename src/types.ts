@@ -1,10 +1,6 @@
-import { CoreMessage } from 'ai'
+import { CoreMessage, CoreUserMessage, CoreAssistantMessage } from 'ai'
 
-export interface ChatMessage {
-    id: string
-    role: 'user' | 'assistant' | 'system'
-    content: string
-}
+export type ChatMessage = (CoreUserMessage | CoreAssistantMessage) & { id: string }
 
 export interface SearchDataEntry {
     slug: string

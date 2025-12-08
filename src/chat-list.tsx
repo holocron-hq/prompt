@@ -14,7 +14,9 @@ export function ChatList({ sources, messages }: ChatList) {
         return null
     }
 
-    const userMessages = messages.filter((message) => message.role === 'user')
+    const userMessageIds = messages
+        .filter((message) => message.role === 'user')
+        .map((m) => m.id)
 
     return (
         <div className='relative px-4 pb-12 py-4 flex-col-reverse gap-4 flex w-full'>
@@ -26,7 +28,7 @@ export function ChatList({ sources, messages }: ChatList) {
                     </Fragment>,
                 ]
 
-                let sections = sources?.[userMessages.indexOf(message)] || []
+                let sections = sources?.[userMessageIds.indexOf(message.id)] || []
                 sections = sections.slice(0, 4)
                 if (sections.length) {
                     const content = `<Sources sources={${JSON.stringify(
