@@ -1,6 +1,8 @@
 'use client'
 import { parse, formatRgb, filterBrightness, filterSaturate, wcagLuminance } from 'culori'
+// @ts-ignore - types require bundler moduleResolution
 import colors from 'tailwindcss/colors'
+import type { ChatMessage } from './types'
 
 
 import { findAll } from 'highlight-words-core'
@@ -62,6 +64,25 @@ import {
 import { DialogPosition, SearchDataEntry, SearchEndpointBody } from './types'
 import { basename } from './utils'
 import { SearchResult } from './hooks'
+
+function uiMessageToChatMessage(msg: {
+    id: string
+    role: string
+    parts?: Array<{ type: string; text?: string }>
+}): ChatMessage | null {
+    if (msg.role !== 'user' && msg.role !== 'assistant' && msg.role !== 'system') {
+        return null
+    }
+    const textContent = msg.parts
+        ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+        .map((p) => p.text)
+        .join('\n') || ''
+    return {
+        id: msg.id,
+        role: msg.role,
+        content: textContent,
+    }
+}
 
 function Variables({ children }) {
     const { primaryColor: primaryColorString } = usePromptContext()
@@ -478,13 +499,17 @@ export function SearchAndChatInner({
                             ) : (
                                 <ChatList
                                     sources={sources}
-                                    messages={messages.filter(
-                                        (x) =>
-                                            !additionalMessages.current.some(
+                                    messages={messages
+                                        .map(uiMessageToChatMessage)
+                                        .filter((x): x is ChatMessage => {
+                                            if (!x) {
+                                                return false
+                                            }
+                                            return !additionalMessages.current.some(
                                                 (add) =>
                                                     add.content === x.content,
-                                            ),
-                                    )}
+                                            )
+                                        })}
                                 />
                             )}
                         </CommandList>

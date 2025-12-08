@@ -5,8 +5,21 @@ import { Tiktoken } from 'js-tiktoken/lite'
 import cl100k_base from 'js-tiktoken/ranks/cl100k_base'
 const tokenizer = new Tiktoken(cl100k_base)
 
-import { streamText, pipeDataStreamToResponse } from 'ai'
-import { CreateMessage } from 'ai/'
+import { streamText } from 'ai'
+import type { CoreMessage } from 'ai'
+
+function getTextContent(content: CoreMessage['content']): string {
+    if (typeof content === 'string') {
+        return content
+    }
+    if (Array.isArray(content)) {
+        return content
+            .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+            .map((p) => p.text)
+            .join('\n')
+    }
+    return ''
+}
 import { oneLine, stripIndent } from 'common-tags'
 import { Index } from '@upstash/vector'
 
@@ -82,7 +95,7 @@ export async function handleSearchAndChatRequest({
 }: {
     json: SearchEndpointBody
     updateMessages?: (x: {
-        messages: CreateMessage[]
+        messages: CoreMessage[]
         sources: Partial<SearchDataEntry>[]
     }) => void
 
@@ -121,12 +134,12 @@ export async function handleSearchAndChatRequest({
             await updateMessages?.({ messages, sources: [] })
         } else {
             const isFirstMessage = messages.length === 1
-            const firstMessage = messages.filter((x) => x.role === 'user')[0]
-                .content
+            const firstUserMessage = messages.filter((x) => x.role === 'user')[0]
+            const firstMessageText = getTextContent(firstUserMessage.content)
             const sources = await semanticSearch({
                 index,
                 openai,
-                query: firstMessage,
+                query: firstMessageText,
                 namespace,
                 onError,
             })
@@ -158,7 +171,7 @@ export async function handleSearchAndChatRequest({
                 .entries()
 
             const messagesTokens = messages.reduce((acc, x) => {
-                return acc + tokenizer.encode(x.content).length
+                return acc + tokenizer.encode(getTextContent(x.content)).length
             }, 0)
             let tokenCount = 0
             const sourcesMaxTokens = maxInputTokens - messagesTokens - 20 // 20 for the additional wrapping text
@@ -179,9 +192,10 @@ export async function handleSearchAndChatRequest({
                     contextText += `${content.trim()}\n---\n`
                 }
 
+                const originalContent = getTextContent(message.content)
                 message.content = stripIndent`
                 Question: """
-                ${message.content}
+                ${originalContent}
                 """
                 `
                 if (contextText) {
@@ -193,13 +207,13 @@ export async function handleSearchAndChatRequest({
 
         // console.log('messages', JSON.stringify(messages, null, 2))
 
-        const result = await streamText({
-            model: createOpenAI(model),
+        const result = streamText({
+            model: createOpenAI(model) as any,
             messages,
             temperature: 0.5,
         })
 
-        return result.toDataStreamResponse()
+        return result.toTextStreamResponse()
     } catch (e: any) {
         if (e.name === 'AbortError') {
             return new Response(null, { status: 204 })
