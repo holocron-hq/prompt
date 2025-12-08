@@ -1,5 +1,11 @@
 import { CoreMessage } from 'ai'
 
+export interface ChatMessage {
+    id: string
+    role: 'user' | 'assistant' | 'system'
+    content: string
+}
+
 export interface SearchDataEntry {
     slug: string
     text: string

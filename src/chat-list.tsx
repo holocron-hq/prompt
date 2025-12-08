@@ -1,12 +1,11 @@
-import { type Message } from 'ai'
 import { v4 } from 'uuid'
 
 import { Fragment } from 'react'
-import { ChatMessage } from './chat-message'
-import { SearchDataEntry } from './types'
+import { ChatMessageComponent } from './chat-message'
+import { ChatMessage, SearchDataEntry } from './types'
 
 export interface ChatList {
-    messages: Message[]
+    messages: ChatMessage[]
     sources: SearchDataEntry[][]
 }
 
@@ -22,7 +21,7 @@ export function ChatList({ sources, messages }: ChatList) {
             {messages.flatMap((message, index) => {
                 const res = [
                     <Fragment key={message.id}>
-                        <ChatMessage message={message} />
+                        <ChatMessageComponent message={message} />
                         {index < messages.length - 1 && <hr className='' />}
                     </Fragment>,
                 ]
@@ -36,7 +35,7 @@ export function ChatList({ sources, messages }: ChatList) {
 
                     res.push(
                         <Fragment key={'assistant sources' + message.id}>
-                            <ChatMessage
+                            <ChatMessageComponent
                                 message={{
                                     id: v4(),
                                     content,

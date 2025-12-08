@@ -1,9 +1,8 @@
-import { Message } from 'ai'
 import Link from 'next/link'
 import { clsx } from 'clsx'
 
-import { SafeMdxRenderer } from 'safe-mdx/src/safe-mdx'
-import { SearchDataEntry } from './types'
+import { SafeMdxRenderer } from 'safe-mdx'
+import { ChatMessage, SearchDataEntry } from './types'
 import { usePromptContext } from './hooks'
 import { basename } from './utils'
 import {
@@ -14,11 +13,11 @@ import {
 } from 'lucide-react'
 
 export interface ChatMessageProps {
-    message: Message
+    message: ChatMessage
     className?: string
 }
 
-export function ChatMessage({
+export function ChatMessageComponent({
     className = '',
     message,
     ...props
@@ -45,7 +44,7 @@ export function ChatMessage({
                 <div className='font-bold'>{name}</div>
                 <Prose className={clsx('', className)}>
                     <SafeMdxRenderer
-                        code={message.content}
+                        markdown={message.content}
                         // mdast={mdast}
                         components={{
                             p({ children }) {
