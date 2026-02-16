@@ -20,6 +20,21 @@ function getTextContent(content: ModelMessage['content']): string {
     }
     return ''
 }
+
+// Handle both old {content} and new {parts} message formats from AI SDK
+function getMessageText(message: any): string {
+    if (message.content !== undefined) {
+        return getTextContent(message.content)
+    }
+    // AI SDK v4+ uses parts array instead of content
+    if (message.parts && Array.isArray(message.parts)) {
+        return message.parts
+            .filter((p: any) => p.type === 'text')
+            .map((p: any) => p.text)
+            .join('\n')
+    }
+    return ''
+}
 import { oneLine, stripIndent } from 'common-tags'
 import { Index } from '@upstash/vector'
 
@@ -137,7 +152,7 @@ export async function handleSearchAndChatRequest({
         } else {
             const isFirstMessage = messages.length === 1
             const firstUserMessage = messages.filter((x) => x.role === 'user')[0]
-            const firstMessageText = getTextContent(firstUserMessage.content)
+            const firstMessageText = getMessageText(firstUserMessage)
             const sources = await semanticSearch({
                 index,
                 openai,
@@ -173,7 +188,7 @@ export async function handleSearchAndChatRequest({
                 .entries()
 
             const messagesTokens = messages.reduce((acc, x) => {
-                return acc + tokenizer.encode(getTextContent(x.content)).length
+                return acc + tokenizer.encode(getMessageText(x)).length
             }, 0)
             let tokenCount = 0
             const sourcesMaxTokens = maxInputTokens - messagesTokens - 20 // 20 for the additional wrapping text
@@ -194,7 +209,7 @@ export async function handleSearchAndChatRequest({
                     contextText += `${content.trim()}\n---\n`
                 }
 
-                const originalContent = getTextContent(message.content)
+                const originalContent = getMessageText(message)
                 message.content = stripIndent`
                 Question: """
                 ${originalContent}
