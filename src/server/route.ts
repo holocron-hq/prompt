@@ -252,7 +252,12 @@ export async function handleSearchAndChatRequest({
         })
 
         // DefaultChatTransport on frontend expects UI Message Stream format
-        return result.toUIMessageStreamResponse()
+        return result.toUIMessageStreamResponse({
+            headers: {
+                'Transfer-Encoding': 'chunked',
+                'Connection': 'keep-alive',
+            },
+        })
     } catch (e: any) {
         if (e.name === 'AbortError') {
             return new Response(null, { status: 204 })
