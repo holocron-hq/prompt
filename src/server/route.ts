@@ -235,7 +235,8 @@ export async function handleSearchAndChatRequest({
             temperature: 0.5,
         })
 
-        return result.toTextStreamResponse()
+        // DefaultChatTransport on frontend expects UI Message Stream format
+        return result.toUIMessageStreamResponse()
     } catch (e: any) {
         if (e.name === 'AbortError') {
             return new Response(null, { status: 204 })
