@@ -242,7 +242,7 @@ export async function handleSearchAndChatRequest({
             apiKey: openaiApiKey,
         })
 
-        // Convert UI messages (with parts) to model messages (with content)
+        // Convert mixed messages (some with content, some with parts) to model format
         const modelMessages = normalizeToModelMessages(messages)
 
         const result = streamText({
