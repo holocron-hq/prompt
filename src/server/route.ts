@@ -35,6 +35,19 @@ function getMessageText(message: any): string {
     }
     return ''
 }
+
+// Convert UI messages (with parts) to model messages (with content) for streamText
+function normalizeToModelMessages(messages: any[]): ModelMessage[] {
+    return messages.map((msg) => {
+        // If already has content, use it
+        if (msg.content !== undefined) {
+            return { role: msg.role, content: msg.content } as ModelMessage
+        }
+        // Convert parts to content
+        const text = getMessageText(msg)
+        return { role: msg.role, content: text } as ModelMessage
+    })
+}
 import { oneLine, stripIndent } from 'common-tags'
 import { Index } from '@upstash/vector'
 
@@ -229,9 +242,12 @@ export async function handleSearchAndChatRequest({
             apiKey: openaiApiKey,
         })
 
+        // Convert UI messages (with parts) to model messages (with content)
+        const modelMessages = normalizeToModelMessages(messages)
+
         const result = streamText({
             model: openaiProvider(model),
-            messages,
+            messages: modelMessages,
             temperature: 0.5,
         })
 
