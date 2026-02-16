@@ -6,9 +6,9 @@ import cl100k_base from 'js-tiktoken/ranks/cl100k_base'
 const tokenizer = new Tiktoken(cl100k_base)
 
 import { streamText } from 'ai'
-import type { CoreMessage } from 'ai'
+import type { ModelMessage } from 'ai'
 
-function getTextContent(content: CoreMessage['content']): string {
+function getTextContent(content: ModelMessage['content']): string {
     if (typeof content === 'string') {
         return content
     }
@@ -23,7 +23,7 @@ function getTextContent(content: CoreMessage['content']): string {
 import { oneLine, stripIndent } from 'common-tags'
 import { Index } from '@upstash/vector'
 
-import { openai as createOpenAI } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
@@ -88,19 +88,21 @@ async function semanticSearch({
 export async function handleSearchAndChatRequest({
     index,
     openai,
+    openaiApiKey,
     json,
-    model = 'gpt-4o',
+    model = 'gpt-4.1-mini',
     updateMessages,
     onError = (e) => console.error(e),
 }: {
     json: SearchEndpointBody
     updateMessages?: (x: {
-        messages: CoreMessage[]
+        messages: ModelMessage[]
         sources: Partial<SearchDataEntry>[]
     }) => void
 
     index: Index
     openai: OpenAI
+    openaiApiKey: string
     onError?: (e: any) => void
     model?: string
 }) {
@@ -207,8 +209,13 @@ export async function handleSearchAndChatRequest({
 
         // console.log('messages', JSON.stringify(messages, null, 2))
 
+        // Create a configured OpenAI provider with the API key
+        const openaiProvider = createOpenAI({
+            apiKey: openaiApiKey,
+        })
+
         const result = streamText({
-            model: createOpenAI(model) as any,
+            model: openaiProvider(model),
             messages,
             temperature: 0.5,
         })
@@ -222,7 +229,22 @@ export async function handleSearchAndChatRequest({
     }
 }
 
-const modelToLimit = {
+const modelToLimit: Record<string, { description: string; contextWindow: number; trainingData: string }> = {
+    'gpt-4.1-mini': {
+        description: 'GPT-4.1 Mini - Fast and affordable model with 1M context window',
+        contextWindow: 1000000,
+        trainingData: 'Up to Jun 2025',
+    },
+    'gpt-4o': {
+        description: 'GPT-4o with vision and 128K context window',
+        contextWindow: 128000,
+        trainingData: 'Up to Oct 2023',
+    },
+    'gpt-4o-mini': {
+        description: 'GPT-4o Mini - Smaller, faster GPT-4o with 128K context',
+        contextWindow: 128000,
+        trainingData: 'Up to Oct 2023',
+    },
     'gpt-3.5-turbo-1106': {
         description:
             'Updated GPT 3.5 TurboNew - The latest GPT-3.5 Turbo model with improved instruction following, JSON mode, reproducible outputs, parallel function calling, and more. Returns a maximum of 4,096 output tokens.',

@@ -36,7 +36,8 @@ import {
     StarsIcon,
 } from 'lucide-react'
 
-import { CreateMessage, useChat } from '@ai-sdk/react'
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
@@ -264,7 +265,7 @@ export function SearchAndChatInner({
             },
         })
 
-    const additionalMessages = useRef<CreateMessage[]>([])
+    const additionalMessages = useRef<Array<{ content: string; role: string }>>([])
 
     const input = useRef<HTMLInputElement>(null)
     useEffect(() => {
@@ -283,33 +284,30 @@ export function SearchAndChatInner({
 
     const {
         messages,
-        append,
-        data,
+        sendMessage,
         setMessages,
         stop,
-        isLoading: isLoadingChat,
+        status: chatStatus,
     } = useChat({
-        initialMessages: initialMessage
+        messages: initialMessage
             ? [
                   {
-                      content: initialMessage,
+                      parts: [{ type: 'text', text: initialMessage }],
                       role: 'assistant',
                       id: 'initial',
                   },
               ]
             : [],
-        api,
+        transport: new DefaultChatTransport({
+            api,
+            body,
+        }),
         id: chatId,
-        body,
-        onResponse(response) {
-            if (response.status === 401) {
-                toast.error(response.statusText)
-            }
-        },
         onError(error) {
             toast.error(error.message)
         },
     })
+    const isLoadingChat = chatStatus === 'streaming' || chatStatus === 'submitted'
 
     const [value, _setValue] = useState('')
 
@@ -359,19 +357,17 @@ export function SearchAndChatInner({
 
             setValue('')
 
-            const messageId = v4()
             console.log(`sending message`, q)
-            append({
-                role: 'user',
-                id: messageId,
-                content: q,
+            sendMessage({
+                parts: [{ type: 'text', text: q }],
             })
         }
     })
     const isLoading = isMiniSearching || isLoadingChat || isSemanticSearching
     const showChatIdeas = !messages.length && !value && !isLoadingChat
     const terms = [value]
-    const sources = data?.map((x: any) => x.sources) || []
+    // Sources are no longer available via data in AI SDK v6
+    const sources: Array<Array<unknown>> = []
     const results = mode === 'search' ? localResults : semanticResults
     const previousInitialMessage = usePrevious(initialMessage)
     useEffect(() => {
@@ -480,7 +476,7 @@ export function SearchAndChatInner({
                             {showChatIdeas ? (
                                 getMessageIdeas({
                                     additionalMessages,
-                                    append,
+                                    sendMessage,
                                     currentPageText,
                                 }).map((msg, i) => {
                                     return (
@@ -498,7 +494,7 @@ export function SearchAndChatInner({
                                 })
                             ) : (
                                 <ChatList
-                                    sources={sources}
+                                    sources={sources as SearchDataEntry[][]}
                                     messages={messages
                                         .map(uiMessageToChatMessage)
                                         .filter((x): x is ChatMessage => {
@@ -637,19 +633,9 @@ export function SearchAndChatInner({
     )
 }
 
-const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
+const getMessageIdeas = ({ additionalMessages, currentPageText, sendMessage }) => {
     if (!currentPageText) {
         return []
-    }
-    const getBodyOptions = () => {
-        const body: Partial<SearchEndpointBody> = {
-            additionalMessages: additionalMessages.current,
-        }
-        return {
-            options: {
-                body,
-            },
-        }
     }
     return [
         {
@@ -662,13 +648,9 @@ const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
                         role: 'assistant',
                     },
                 ]
-                append(
-                    {
-                        content: `Turn the current page into a diagram`,
-                        role: 'user',
-                    },
-                    getBodyOptions(),
-                )
+                sendMessage({
+                    parts: [{ type: 'text', text: `Turn the current page into a diagram` }],
+                })
             },
         }, //
         {
@@ -681,13 +663,9 @@ const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
                         role: 'assistant',
                     },
                 ]
-                append(
-                    {
-                        content: `Give me a short and concise summary`,
-                        role: 'user',
-                    },
-                    getBodyOptions(),
-                )
+                sendMessage({
+                    parts: [{ type: 'text', text: `Give me a short and concise summary` }],
+                })
             },
         }, //
         {
@@ -700,13 +678,9 @@ const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
                         role: 'assistant',
                     },
                 ]
-                append(
-                    {
-                        content: `Create 2 ordered lists of cons and pros for the current page`,
-                        role: 'user',
-                    },
-                    getBodyOptions(),
-                )
+                sendMessage({
+                    parts: [{ type: 'text', text: `Create 2 ordered lists of cons and pros for the current page` }],
+                })
             },
         }, //
         {
@@ -719,13 +693,9 @@ const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
                         role: 'assistant',
                     },
                 ]
-                append(
-                    {
-                        content: `Create a fgm markdown todo list for the current page, a list of tasks for the reader`,
-                        role: 'user',
-                    },
-                    getBodyOptions(),
-                )
+                sendMessage({
+                    parts: [{ type: 'text', text: `Create a fgm markdown todo list for the current page, a list of tasks for the reader` }],
+                })
             },
         }, //
         {
@@ -738,13 +708,9 @@ const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
                         role: 'assistant',
                     },
                 ]
-                append(
-                    {
-                        content: `Explain this page like i am 5 years old`,
-                        role: 'user',
-                    },
-                    getBodyOptions(),
-                )
+                sendMessage({
+                    parts: [{ type: 'text', text: `Explain this page like i am 5 years old` }],
+                })
             },
         }, //
         {
@@ -757,13 +723,9 @@ const getMessageIdeas = ({ additionalMessages, currentPageText, append }) => {
                         role: 'assistant',
                     },
                 ]
-                append(
-                    {
-                        content: `Give me an outline using markdown ordered lists, use headings and subheadings, if few headings are preset extrapolate them from the content`,
-                        role: 'user',
-                    },
-                    getBodyOptions(),
-                )
+                sendMessage({
+                    parts: [{ type: 'text', text: `Give me an outline using markdown ordered lists, use headings and subheadings, if few headings are preset extrapolate them from the content` }],
+                })
             },
         },
     ]
