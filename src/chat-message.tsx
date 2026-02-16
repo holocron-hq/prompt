@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { clsx } from 'clsx'
 
-import { SafeMdxRenderer } from 'safe-mdx'
+// SafeMdxRenderer removed - was not rendering content correctly
+// TODO: investigate safe-mdx compatibility or use react-markdown if markdown needed
 import { ChatMessage, SearchDataEntry } from './types'
 import { usePromptContext } from './hooks'
 import { basename } from './utils'
@@ -43,28 +44,11 @@ export function ChatMessageComponent({
             <div className='flex-1 ml-4 flex flex-col overflow-x-hidden'>
                 <div className='font-bold'>{name}</div>
                 <Prose className={clsx('', className)}>
-                    <SafeMdxRenderer
-                        markdown={message.content}
-                        // mdast={mdast}
-                        components={{
-                            p({ children }) {
-                                return (
-                                    <p className='mb-2 last:mb-0'>{children}</p>
-                                )
-                            },
-                            Sources,
-                            pre({ children, className, ...rest }) {
-                                return (
-                                    <pre
-                                        className={clsx('dark', className)}
-                                        {...rest}
-                                    >
-                                        {children}
-                                    </pre>
-                                )
-                            },
-                        }}
-                    />
+                    {/* 
+                     * SafeMdxRenderer was not rendering content - using direct text for now.
+                     * TODO: investigate safe-mdx compatibility issue or use react-markdown
+                     */}
+                    <div className='whitespace-pre-wrap'>{message.content}</div>
                 </Prose>
                 {/* <div className='flex items-center'>
                     <div className='grow'></div>
