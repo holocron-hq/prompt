@@ -118,7 +118,7 @@ export async function handleSearchAndChatRequest({
     openai,
     openaiApiKey,
     json,
-    model = 'gpt-4.1-mini',
+    model = 'gpt-5-mini',
     updateMessages,
     onError = (e) => console.error(e),
 }: {
@@ -266,60 +266,14 @@ export async function handleSearchAndChatRequest({
     }
 }
 
-const modelToLimit: Record<string, { description: string; contextWindow: number; trainingData: string }> = {
-    'gpt-4.1-mini': {
-        description: 'GPT-4.1 Mini - Fast and affordable model with 1M context window',
-        contextWindow: 1000000,
-        trainingData: 'Up to Jun 2025',
+const modelToLimit: Record<string, { contextWindow: number }> = {
+    'gpt-5-mini': {
+        contextWindow: 400000,
     },
-    'gpt-4o': {
-        description: 'GPT-4o with vision and 128K context window',
-        contextWindow: 128000,
-        trainingData: 'Up to Oct 2023',
+    'gpt-5': {
+        contextWindow: 400000,
     },
-    'gpt-4o-mini': {
-        description: 'GPT-4o Mini - Smaller, faster GPT-4o with 128K context',
-        contextWindow: 128000,
-        trainingData: 'Up to Oct 2023',
-    },
-    'gpt-3.5-turbo-1106': {
-        description:
-            'Updated GPT 3.5 TurboNew - The latest GPT-3.5 Turbo model with improved instruction following, JSON mode, reproducible outputs, parallel function calling, and more. Returns a maximum of 4,096 output tokens.',
-        contextWindow: 16385,
-        trainingData: 'Up to Sep 2021',
-    },
-    'gpt-3.5-turbo': {
-        description: 'Currently points to gpt-3.5-turbo-0613.',
-        contextWindow: 4096,
-        trainingData: 'Up to Sep 2021',
-    },
-    'gpt-3.5-turbo-16k': {
-        description: 'Currently points to gpt-3.5-turbo-0613.',
-        contextWindow: 16385,
-        trainingData: 'Up to Sep 2021',
-    },
-    'gpt-3.5-turbo-instruct': {
-        description:
-            'Similar capabilities as text-davinci-003 but compatible with legacy Completions endpoint and not Chat Completions.',
-        contextWindow: 4096,
-        trainingData: 'Up to Sep 2021',
-    },
-    'gpt-3.5-turbo-0613': {
-        description:
-            'Legacy - Snapshot of gpt-3.5-turbo from June 13th 2023. Will be deprecated on June 13, 2024.',
-        contextWindow: 4096,
-        trainingData: 'Up to Sep 2021',
-    },
-    'gpt-3.5-turbo-16k-0613': {
-        description:
-            'Legacy - Snapshot of gpt-3.5-16k-turbo from June 13th 2023. Will be deprecated on June 13, 2024.',
-        contextWindow: 16385,
-        trainingData: 'Up to Sep 2021',
-    },
-    'gpt-3.5-turbo-0301': {
-        description:
-            'Legacy - Snapshot of gpt-3.5-turbo from March 1st 2023. Will be deprecated on June 13th 2024.',
-        contextWindow: 4096,
-        trainingData: 'Up to Sep 2021',
+    'gpt-5-nano': {
+        contextWindow: 400000,
     },
 }
