@@ -51,6 +51,7 @@ function normalizeToModelMessages(messages: any[]): ModelMessage[] {
 import { oneLine, stripIndent } from 'common-tags'
 import { Index } from '@upstash/vector'
 
+import { createGateway } from '@ai-sdk/gateway'
 import { createOpenAI } from '@ai-sdk/openai'
 
 import { NextResponse } from 'next/server'
@@ -117,8 +118,9 @@ export async function handleSearchAndChatRequest({
     index,
     openai,
     openaiApiKey,
+    gatewayApiKey,
     json,
-    model = 'gpt-5-mini',
+    model = 'deepseek/deepseek-v4-flash',
     updateMessages,
     onError = (e) => console.error(e),
 }: {
@@ -131,6 +133,8 @@ export async function handleSearchAndChatRequest({
     index: Index
     openai: OpenAI
     openaiApiKey: string
+    /** Vercel AI Gateway API key. When provided, uses the gateway provider instead of OpenAI directly. */
+    gatewayApiKey?: string
     onError?: (e: any) => void
     model?: string
 }) {
@@ -237,16 +241,21 @@ export async function handleSearchAndChatRequest({
 
         // console.log('messages', JSON.stringify(messages, null, 2))
 
-        // Create a configured OpenAI provider with the API key
-        const openaiProvider = createOpenAI({
-            apiKey: openaiApiKey,
-        })
-
         // Convert mixed messages (some with content, some with parts) to model format
         const modelMessages = normalizeToModelMessages(messages)
 
+        // Use Vercel AI Gateway when key is available, otherwise fall back to OpenAI directly
+        const languageModel = (() => {
+            if (gatewayApiKey) {
+                const gateway = createGateway({ apiKey: gatewayApiKey })
+                return gateway(model)
+            }
+            const openaiProvider = createOpenAI({ apiKey: openaiApiKey })
+            return openaiProvider(model)
+        })()
+
         const result = streamText({
-            model: openaiProvider(model),
+            model: languageModel,
             messages: modelMessages,
             temperature: 0.5,
         })
@@ -267,6 +276,9 @@ export async function handleSearchAndChatRequest({
 }
 
 const modelToLimit: Record<string, { contextWindow: number }> = {
+    'deepseek/deepseek-v4-flash': {
+        contextWindow: 1000000,
+    },
     'gpt-5-mini': {
         contextWindow: 400000,
     },

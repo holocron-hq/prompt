@@ -20,6 +20,7 @@
     "author": "Tommaso De Rossi, morse <beats.by.morse@gmail.com>",
     "license": "",
     "dependencies": {
+        "@ai-sdk/gateway": "^3.0.84",
         "@ai-sdk/openai": "^3.0.29",
         "@ai-sdk/react": "^3.0.88",
         "@headlessui/react": "2.2.0",
@@ -35,7 +36,7 @@
         "next-themes": "^0.4.6",
         "openai": "^4.20.1",
         "react-hot-toast": "^2.4.1",
-        "safe-mdx": "workspace:*",
+        "safe-mdx": "workspace:^",
         "swr": "^2.2.4",
         "tailwindcss": "^4.1.11",
         "uuid": "^8.3.2",
